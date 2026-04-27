@@ -6,6 +6,12 @@ const port = process.env.PORT || 5000;
 
 app.use(express.json());
 
+//verify ucla email address
+function validateEmail(email)
+{
+	const regex = /^[a-zA-Z0-9._%+-]+@ucla\.edu$/i;
+	return regex.test(email);
+}
 app.get('/api/health', (req, res) => {
 	res.json({message: 'healthy'});
 });
