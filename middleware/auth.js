@@ -13,7 +13,7 @@ function checkAuth(req, res, next) {
 	//if it does exist, and is in proper format: "Bearer [jwt]", we process it
 	try {
 		const token = header.split(" ")[1];
-		req.userId = jwt.verify(token, process.env.JWT_TOKEN);
+		req.userId = jwt.verify(token, process.env.JWT_SECRET).id;
 		next();
 	}
 	catch(err)
