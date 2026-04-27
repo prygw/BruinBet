@@ -1,99 +1,148 @@
-import React, { useState } from 'react';
+import { useState } from 'react'
 
-const RegistrationPage = () => {
-    // NEED TO ADD:
-    // - useState for form inputs
-    // - connect w / checks for ucla email when trying to sign up(regex ?)
-    // - submitting form? even if it's just a test function
-    const containerStyle = {
-        backgroundColor: '#121212',
-        color: '#ffffff',
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: 'sans-serif'
-    };
+const UCLA_EMAIL_PATTERN = /^[^@\s]+@(?:g\.)?ucla\.edu$/i
 
-    const formStyle = {
-        display: 'flex',
-        flexDirection: 'column',
-        width: '325px',
-        gap: '10px'
-    };
+function RegistrationPage({ message, mode, onModeChange, onAuthenticate }) {
+  const [displayName, setDisplayName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
 
-    const inputStyle = {
-        padding: '16px',
-        borderRadius: '4px',
-        border: '1px solid #333',
-        backgroundColor: '#242424',
-        color: 'white'
-    };
+  const isRegistering = mode === 'register'
 
-    const buttonStyle = {
-        padding: '10px',
-        borderRadius: '25px',
-        border: 'none',
-        backgroundColor: '#007DC3',
-        color: 'white',
-        fontWeight: 'bold',
-        cursor: 'pointer'
-    };
+  function handleSubmit(event) {
+    event.preventDefault()
 
-    const googleButtonStyle = {
-        ...buttonStyle,
-        backgroundColor: 'white',
-        color: '#007DC3',
-        marginBottom: '10px'
-    };
+    if (!UCLA_EMAIL_PATTERN.test(email.trim())) {
+      setError('Use a UCLA email ending in @ucla.edu or @g.ucla.edu.')
+      return
+    }
+
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters.')
+      return
+    }
+
+    setError('')
+    onAuthenticate({
+      displayName: displayName.trim(),
+      email: email.trim(),
+    })
+  }
+
+  function handleModeChange(nextMode) {
+    setError('')
+    onModeChange(nextMode)
+  }
 
   return (
-    <div style={containerStyle}>
-        {/* logo */}
-        <img 
-        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ_sDbnpxvYw6P_fjSOqMZYyUZhg4fSzUIMhw&s" 
-        alt="Logo" 
-        style={{ width: '325px', marginBottom: '20px' }} 
-        />
-
-        <h2 style={{ marginBottom: '15px' }}>Sign up for BruinBet</h2>
-
-        {/* login with google */}
-        <div style={formStyle}>
-        <button style={googleButtonStyle}>Continue with Google</button>
-        
-        <div style={{ textAlign: 'center', margin: '2px 0', color: '#6a6a6a' }}>
-            <hr style={{ borderColor: '#333' }} /> OR
-        </div>
-
-        {/* manual registration form */}
-        <form style={formStyle}>
-            <label>Email address</label>
-            <input 
-            type="email" 
-            name="email"
-            placeholder="Email address" 
-            style={inputStyle} 
-            />
-
-            <label>Create a password</label>
-            <input 
-            type="password" 
-            name="password"
-            placeholder="Password" 
-            style={inputStyle} 
-            />
-
-            <button type="submit" style={buttonStyle}>Sign Up</button>
-        </form>
-        </div>
-
-        <p style={{ marginTop: '20px', fontSize: '14px', color: '#b3b3b3' }}>
-        Already have an account? <span style={{ color: '#ffffff', textDecoration: 'underline', cursor: 'pointer' }}>Log in here.</span>
+    <section className="auth-layout" aria-labelledby="auth-title">
+      <div className="auth-intro">
+        <p className="eyebrow">UCLA access</p>
+        <h1 id="auth-title">
+          {isRegistering ? 'Sign up for BruinBet' : 'Log in to BruinBet'}
+        </h1>
+        <p>
+          Use your campus email when you are ready to place bets, track your
+          balance, and manage your positions.
         </p>
-    </div>
-  );
-};
 
-export default RegistrationPage;
+        <div className="auth-highlights" aria-label="Account features">
+          <span>UCLA email</span>
+          <span>Practice balance</span>
+          <span>Bet placement</span>
+        </div>
+      </div>
+
+      <form className="auth-card" onSubmit={handleSubmit}>
+        {message && <p className="form-message">{message}</p>}
+
+        <div className="mode-tabs" role="tablist" aria-label="Auth mode">
+          <button
+            aria-selected={isRegistering}
+            role="tab"
+            type="button"
+            onClick={() => handleModeChange('register')}
+          >
+            Sign up
+          </button>
+          <button
+            aria-selected={!isRegistering}
+            role="tab"
+            type="button"
+            onClick={() => handleModeChange('login')}
+          >
+            Log in
+          </button>
+        </div>
+
+        <button className="google-button" type="button">
+          Continue with Google
+        </button>
+
+        <div className="divider">
+          <span>or</span>
+        </div>
+
+        {error && <p className="form-error">{error}</p>}
+
+        {isRegistering && (
+          <label>
+            Display name
+            <input
+              autoComplete="name"
+              name="displayName"
+              onChange={(event) => setDisplayName(event.target.value)}
+              placeholder="Harry Yu"
+              type="text"
+              value={displayName}
+            />
+          </label>
+        )}
+
+        <label>
+          Email address
+          <input
+            autoComplete="email"
+            name="email"
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="name@g.ucla.edu"
+            required
+            type="email"
+            value={email}
+          />
+        </label>
+
+        <label>
+          Password
+          <input
+            autoComplete={isRegistering ? 'new-password' : 'current-password'}
+            minLength="8"
+            name="password"
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder="Minimum 8 characters"
+            required
+            type="password"
+            value={password}
+          />
+        </label>
+
+        <button className="primary-button large" type="submit">
+          {isRegistering ? 'Create account' : 'Log in'}
+        </button>
+
+        <p className="auth-switch">
+          {isRegistering ? 'Already have an account?' : 'Need an account?'}
+          <button
+            type="button"
+            onClick={() => handleModeChange(isRegistering ? 'login' : 'register')}
+          >
+            {isRegistering ? 'Log in here.' : 'Sign up here.'}
+          </button>
+        </p>
+      </form>
+    </section>
+  )
+}
+
+export default RegistrationPage
