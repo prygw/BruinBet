@@ -1,15 +1,22 @@
 const express = require('express');
 const cors = require('cors');
+const apiRouter = require('../routes');
 
 const app = express();
 const port = process.env.PORT || 5000;
 
+app.use(cors());
 app.use(express.json());
 
-app.get('/api/health', (req, res) => {
-	res.json({message: 'healthy'});
-});
+//verify ucla email address
+function validateEmail(email)
+{
+	const regex = /^[a-zA-Z0-9._%+-]+@ucla\.edu$/i;
+	return regex.test(email);
+}
+
+app.use('/api', apiRouter);
 
 app.listen(port, () => {
-console.log(`server running on localhost:${port}`);
+	console.log(`server running on localhost:${port}`);
 });
