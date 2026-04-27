@@ -93,7 +93,7 @@ function RegistrationPage({ message, mode, onModeChange, onAuthenticate }) {
               autoComplete="name"
               name="displayName"
               onChange={(event) => setDisplayName(event.target.value)}
-              placeholder="Harry Yu"
+              placeholder="John Smith"
               type="text"
               value={displayName}
             />
