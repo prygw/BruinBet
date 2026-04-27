@@ -1,10 +1,9 @@
 const express = require('express');
-const healthRouter = require('./health');
 
 //this is the main aggregator
 
 const router = express.Router();
-
-router.use('/', healthRouter);
+//add new stuff here
+router.use('/', require('./health'));
 
 module.exports = router;
