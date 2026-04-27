@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS markets (
     winning_id      INTEGER,
     created_by      INTEGER     NOT NULL,
     FOREIGN KEY (created_by)        REFERENCES users(id),
-    FOREIGN KEY (winning_option_id) REFERENCES bet_options(id)
+    FOREIGN KEY (winning_option_id) REFERENCES market_options(id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_markets_status ON markets(status);
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS market_options (
 
 CREATE INDEX IF NOT EXISTS idx_market_options_market ON market_options(market_id);
 
-CREATE TABLE IF NOT EXISTS placements (
+CREATE TABLE IF NOT EXISTS bets (
   id            INTEGER     PRIMARY KEY AUTOINCREMENT,
   user_id       INTEGER     NOT NULL,
   market_id     INTEGER     NOT NULL,
@@ -42,8 +42,8 @@ CREATE TABLE IF NOT EXISTS placements (
   created_at    TEXT        NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (user_id)     REFERENCES users(id),
   FOREIGN KEY (market_id)   REFERENCES markets(id),
-  FOREIGN KEY (option_id)   REFERENCES bet_options(id)
+  FOREIGN KEY (option_id)   REFERENCES market_options(id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_placements_user ON placements(user_id);
-CREATE INDEX IF NOT EXISTS idx_placements_market  ON placements(market_id);
+CREATE INDEX IF NOT EXISTS idx_bets_user ON bets(user_id);
+CREATE INDEX IF NOT EXISTS idx_bets_market  ON bets(market_id);
