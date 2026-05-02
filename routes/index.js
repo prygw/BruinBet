@@ -6,5 +6,6 @@ const healthRouter = require('./health');
 const router = express.Router();
 
 router.use('/', healthRouter);
+router.use('/markets', marketsRouter);
 
 module.exports = router;
