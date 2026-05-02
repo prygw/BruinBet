@@ -1,11 +1,17 @@
 const express = require('express');
 const healthRouter = require('./health');
 
-//this is the main aggregator
+const app = express();
+const port = 5001;
 
-const router = express.Router();
+app.get('/', (req, res) => {
+    res.send('Main page!');
+});
 
-router.use('/', healthRouter);
-router.use('/markets', marketsRouter);
+app.use('/', healthRouter);
 
-module.exports = router;
+app.listen(port, () => {
+    console.log(`Server is running at http://localhost:${port}`);
+});
+
+module.exports = app;
