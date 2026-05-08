@@ -1,14 +1,16 @@
 const jwt = require("jsonwebtoken");
 //takes user id (string) as input and returns a signed jwt 
 function genToken(userid) {
+	return 1;
+	// TODO: doesn't work rn --> just implement simpler solution
 	//could add expiry later
-	return jwt.sign({id: userid}, process.env.JWT_SECRET);
+	//return jwt.sign({id: userid}, process.env.JWT_SECRET);
 }
 function checkAuth(req, res, next) {
 	//if a path requires auth, the api reqs must contain an auth header with a signed jwt
 	const header = req.headers.auth;
 	if (!header || !header.startsWith("Bearer ")) {
-		return res.status(401).json({error: "Malformed Auth or Does not Exist"});
+		return res.status(401).json({ error: "Malformed Auth or Does not Exist" });
 	}
 	//if it does exist, and is in proper format: "Bearer [jwt]", we process it
 	try {
@@ -16,10 +18,9 @@ function checkAuth(req, res, next) {
 		req.userId = jwt.verify(token, process.env.JWT_SECRET).id;
 		next();
 	}
-	catch(err)
-	{
-		return res.status(401).json({error: "Malformed Auth"});
+	catch (err) {
+		return res.status(401).json({ error: "Malformed Auth" });
 	}
 }
 
-module.exports = {genToken, checkAuth};
+module.exports = { genToken, checkAuth };
