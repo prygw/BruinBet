@@ -16,10 +16,10 @@ CREATE TABLE IF NOT EXISTS markets (
     status          TEXT        NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'closed')),
     created_at      INTEGER     NOT NULL DEFAULT (datetime('now')),
     closes_at       INTEGER     NOT NULL,
-    winning_id      INTEGER,
+    winning_option_id INTEGER,
     created_by      INTEGER     NOT NULL,
-    FOREIGN KEY (created_by)        REFERENCES users(id),
-    FOREIGN KEY (winning_id) REFERENCES market_options(id)
+    FOREIGN KEY (created_by)          REFERENCES users(id),
+    FOREIGN KEY (winning_option_id)   REFERENCES market_options(id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_markets_status ON markets(status);
