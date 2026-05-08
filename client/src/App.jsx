@@ -54,11 +54,14 @@ function App() {
     localStorage.removeItem(SESSION_KEY)
   }, [session])
 
-  function handleAuthenticate(profile) {
+  function handleAuthenticate({ token, user, displayName }) {
     setSession({
-      displayName: profile.displayName || profile.email.split('@')[0],
-      email: profile.email,
-      balance: 10000,
+      token,
+      user,
+      displayName: displayName || user.username,
+      email: user.email,
+      balance: user.balance,
+      userId: user.id,
     })
     setActiveView('dashboard')
     setAuthPrompt('')

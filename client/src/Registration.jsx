@@ -3,6 +3,7 @@ import { useState } from 'react'
 const UCLA_EMAIL_PATTERN = /^[^@\s]+@(?:g\.)?ucla\.edu$/i
 
 function RegistrationPage({ message, mode, onModeChange, onAuthenticate }) {
+  const [loading, setLoading] = useState(false)
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -10,24 +11,50 @@ function RegistrationPage({ message, mode, onModeChange, onAuthenticate }) {
 
   const isRegistering = mode === 'register'
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
+    // client-side validation
     event.preventDefault()
-
     if (!UCLA_EMAIL_PATTERN.test(email.trim())) {
       setError('Use a UCLA email ending in @ucla.edu or @g.ucla.edu.')
       return
     }
-
     if (password.length < 8) {
       setError('Password must be at least 8 characters.')
       return
     }
-
     setError('')
-    onAuthenticate({
-      displayName: displayName.trim(),
-      email: email.trim(),
-    })
+    setLoading(true)
+
+    // all is good, attempt authentication
+    try {
+      const endpoint = isRegistering ? 'http://localhost:5001/api/auth/register' : 'http://localhost:5001/api/auth/login'
+      const body = isRegistering 
+        ? { email: email.trim(), password, username: displayName.trim() }
+        : { email: email.trim(), password }
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setError(data.error || 'Authentication failed')
+        setLoading(false)
+        return
+      }
+
+      onAuthenticate({
+        token: data.token,
+        user: data.user,
+        displayName: data.user.username || displayName.trim(),
+      })
+    } catch (err) {
+      setError('Network error. Please try again.')
+      setLoading(false)
+    }
   }
 
   function handleModeChange(nextMode) {
@@ -71,12 +98,13 @@ function RegistrationPage({ message, mode, onModeChange, onAuthenticate }) {
             role="tab"
             type="button"
             onClick={() => handleModeChange('login')}
+            disabled={loading}
           >
             Log in
           </button>
         </div>
 
-        <button className="google-button" type="button">
+        <button className="google-button" type="button" disabled={loading}>
           Continue with Google
         </button>
 
@@ -96,6 +124,7 @@ function RegistrationPage({ message, mode, onModeChange, onAuthenticate }) {
               placeholder="John Smith"
               type="text"
               value={displayName}
+              disabled={loading}
             />
           </label>
         )}
@@ -110,6 +139,7 @@ function RegistrationPage({ message, mode, onModeChange, onAuthenticate }) {
             required
             type="email"
             value={email}
+            disabled={loading}
           />
         </label>
 
@@ -124,11 +154,12 @@ function RegistrationPage({ message, mode, onModeChange, onAuthenticate }) {
             required
             type="password"
             value={password}
+            disabled={loading}
           />
         </label>
 
-        <button className="primary-button large" type="submit">
-          {isRegistering ? 'Create account' : 'Log in'}
+        <button className="primary-button large" type="submit" disabled={loading}>
+          {loading ? 'Loading...' : isRegistering ? 'Create account' : 'Log in'}
         </button>
 
         <p className="auth-switch">
@@ -136,6 +167,7 @@ function RegistrationPage({ message, mode, onModeChange, onAuthenticate }) {
           <button
             type="button"
             onClick={() => handleModeChange(isRegistering ? 'login' : 'register')}
+            disabled={loading}
           >
             {isRegistering ? 'Log in here.' : 'Sign up here.'}
           </button>
