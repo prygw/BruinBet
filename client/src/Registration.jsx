@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import BASE_URL from './api'
 
 const UCLA_EMAIL_PATTERN = /^[^@\s]+@(?:g\.)?ucla\.edu$/i
 
@@ -27,7 +28,7 @@ function RegistrationPage({ message, mode, onModeChange, onAuthenticate }) {
 
     // all is good, attempt authentication
     try {
-      const endpoint = isRegistering ? 'http://localhost:5001/api/auth/register' : 'http://localhost:5001/api/auth/login'
+      const endpoint = isRegistering ? `${BASE_URL}/api/auth/register` : `${BASE_URL}/api/auth/login`
       const body = isRegistering 
         ? { email: email.trim(), password, username: displayName.trim() }
         : { email: email.trim(), password }
