@@ -3,14 +3,13 @@ const cors = require('cors');
 const apiRouter = require('../routes');
 require('dotenv').config()
 const app = express();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 5001;
 
 app.use(cors());
 app.use(express.json());
 
 //verify ucla email address
-function validateEmail(email)
-{
+function validateEmail(email) {
 	const regex = /^[a-zA-Z0-9._%+-]+@ucla\.edu$/i;
 	return regex.test(email);
 }
