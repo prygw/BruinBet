@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS markets (
     winning_id      INTEGER,
     created_by      INTEGER     NOT NULL,
     FOREIGN KEY (created_by)        REFERENCES users(id),
-    FOREIGN KEY (winning_option_id) REFERENCES market_options(id)
+    FOREIGN KEY (winning_id) REFERENCES market_options(id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_markets_status ON markets(status);

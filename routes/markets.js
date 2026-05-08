@@ -20,8 +20,8 @@ function getMarketStatus(row, now = Date.now()) {
 }
 
 
-// GET /api/markets --> get markets based on status
-router.get('/', checkAuth, async (req, res) => {
+// GET /api/markets --> get markets based on status --> checkAuth option for now
+router.get('/', async (req, res) => {
     try {
         const statusFilter = req.query.status || "open";
         const db = await getDb();
@@ -42,8 +42,8 @@ router.get('/', checkAuth, async (req, res) => {
 });
 
 
-// GET /api/markets/:id
-router.get('/:id', checkAuth, async (req, res) => {
+// GET /api/markets/:id -> checkAuth option for now
+router.get('/:id', async (req, res) => {
     try {
         // get market by id
         res.json({ message: "Market details" });
