@@ -9,6 +9,10 @@ const port = process.env.PORT || 5001;
 app.use(cors());
 app.use(express.json());
 
+const { expireClosedMarkets } = require('./tasks/closeMarket');
+// on any render -> update markets that have closed but haven't been marked as expired yet (can make cron job, but I think this is good enough for now)
+expireClosedMarkets().catch(console.error);
+
 //verify ucla email address
 function validateEmail(email) {
 	const regex = /^[a-zA-Z0-9._%+-]+@ucla\.edu$/i;
