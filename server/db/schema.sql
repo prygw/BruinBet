@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS users (
     id              INTEGER     PRIMARY KEY AUTOINCREMENT,
     email           TEXT        NOT NULL UNIQUE COLLATE NOCASE,
-    password_hash   INTEGER     NOT NULL,
+    password_hash   TEXT        NOT NULL,
     username        TEXT        NOT NULL,
     balance         INTEGER     NOT NULL DEFAULT 10000,
     is_admin        INTEGER     NOT NULL DEFAULT 0,
