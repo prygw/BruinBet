@@ -2,29 +2,19 @@ import { useEffect, useState } from 'react'
 import './App.css'
 import RegistrationPage from './Registration'
 import logo from './assets/logo.PNG'
+import BASE_URL from './api'
 
 const SESSION_KEY = 'bruinbet-session'
 
-const marketPreviews = [
-  {
-    title: 'UCLA wins the next rivalry game',
-    price: '62%',
-    liquidity: '$8.4k',
-    closes: '4d 6h',
-  },
-  {
-    title: 'Ackerman lines stay under 20 minutes Friday',
-    price: '44%',
-    liquidity: '$2.1k',
-    closes: '1d 3h',
-  },
-  {
-    title: 'Bruins finish top 3 in the conference',
-    price: '71%',
-    liquidity: '$12.7k',
-    closes: '9d 1h',
-  },
-]
+function formatTimeRemaining(closesAt) {
+  const diff = new Date(closesAt) - Date.now()
+  if (diff <= 0) return 'Closed'
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+  if (days > 0) return `${days}d ${hours}h`
+  const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+  return `${hours}h ${mins}m`
+}
 
 function getStoredSession() {
   try {
@@ -181,10 +171,7 @@ function App() {
         )}
 
         {activeView === 'dashboard' && session && (
-          <Dashboard
-            session={session}
-            onViewMarkets={() => setActiveView('landing')}
-          />
+          <Dashboard session={session} />
         )}
       </main>
     </div>
@@ -225,30 +212,25 @@ function Landing({ onPlaceBet, onShowAuth, searchTerm, session }) {
         actionLabel={session ? 'Place bet' : 'Sign up to bet'}
         onPlaceBet={onPlaceBet}
         searchTerm={searchTerm}
+        previewLimit={session ? null : 3}
       />
     </section>
   )
 }
 
-function Dashboard({ session, onViewMarkets }) {
+function Dashboard({ session }) {
   return (
     <section className="dashboard-layout" aria-labelledby="dashboard-title">
       <div className="dashboard-panel">
         <p className="eyebrow">Signed in</p>
         <h1 id="dashboard-title">Welcome, {session.displayName}</h1>
-        <p>
-          Your UCLA account is active. Track your balance and return to the
-          public markets whenever you want to browse.
-        </p>
-        <button className="primary-button large" type="button" onClick={onViewMarkets}>
-          View markets
-        </button>
+        <p>Your UCLA account is active.</p>
       </div>
 
       <div className="account-summary" aria-label="Account summary">
         <SummaryItem label="Email" value={session.email} />
         <SummaryItem
-          label="Starting balance"
+          label="Balance"
           value={`$${session.balance.toLocaleString()}`}
         />
         <SummaryItem label="Access" value="Betting enabled" />
@@ -257,37 +239,43 @@ function Dashboard({ session, onViewMarkets }) {
   )
 }
 
-function MarketPreviewGrid({ actionLabel, onPlaceBet, searchTerm }) {
+function MarketPreviewGrid({ actionLabel, onPlaceBet, searchTerm, previewLimit, title = 'Campus market preview' }) {
+  const [markets, setMarkets] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch(`${BASE_URL}/api/markets?status=open`)
+      .then((res) => res.json())
+      .then((data) => setMarkets(data.markets || []))
+      .catch(() => setMarkets([]))
+      .finally(() => setLoading(false))
+  }, [])
+
   const normalizedSearch = searchTerm.trim().toLowerCase()
-  const filteredMarkets = normalizedSearch
-    ? marketPreviews.filter((market) =>
-        market.title.toLowerCase().includes(normalizedSearch),
+  const filtered = normalizedSearch
+    ? markets.filter((market) =>
+        market.market_name.toLowerCase().includes(normalizedSearch),
       )
-    : marketPreviews
+    : markets
+  const filteredMarkets = previewLimit ? filtered.slice(0, previewLimit) : filtered
+
+  if (loading) return <p className="empty-results">Loading markets...</p>
 
   return (
     <section className="markets-layout" aria-labelledby="markets-title">
       <div className="section-heading">
         <p className="eyebrow">Active markets</p>
-        <h1 id="markets-title">Campus market preview</h1>
+        <h1 id="markets-title">{title}</h1>
       </div>
 
       <div className="market-grid">
         {filteredMarkets.map((market) => (
-          <article className="market-card" key={market.title}>
-            <h2>{market.title}</h2>
+          <article className="market-card" key={market.id}>
+            <h2>{market.market_name}</h2>
             <dl>
               <div>
-                <dt>Yes price</dt>
-                <dd>{market.price}</dd>
-              </div>
-              <div>
-                <dt>Liquidity</dt>
-                <dd>{market.liquidity}</dd>
-              </div>
-              <div>
                 <dt>Closes</dt>
-                <dd>{market.closes}</dd>
+                <dd>{formatTimeRemaining(market.closes_at)}</dd>
               </div>
             </dl>
             <button
@@ -301,8 +289,12 @@ function MarketPreviewGrid({ actionLabel, onPlaceBet, searchTerm }) {
         ))}
       </div>
 
+      {previewLimit && filtered.length > previewLimit && (
+        <p className="empty-results">Sign up to see all {filtered.length} markets.</p>
+      )}
+
       {filteredMarkets.length === 0 && (
-        <p className="empty-results">No markets match your search.</p>
+        <p className="empty-results">No open markets right now.</p>
       )}
     </section>
   )
