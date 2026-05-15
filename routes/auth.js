@@ -10,7 +10,6 @@ const UCLA_EMAIL_PATTERN = /^[^@\s]+@(?:g\.)?ucla\.edu$/i;
 
 router.post("/register", async (req, res) => {
 	try {
-		//we take these to create the acct 
 		const { email, password, username } = req.body;
 		if (!email || !password || !username) {
 			return res.status(400).json({ error: "Email, password, and username are required." });
@@ -23,16 +22,19 @@ router.post("/register", async (req, res) => {
 
 		// insert new user w/ default balance amt
 		const balance = INITIAL_BALANCE;
-		await db.run("INSERT INTO users (email, password_hash, username, balance) VALUES (?, ?, ?, ?)", [email, hash, username, balance]);
+		try {
+			await db.run("INSERT INTO users (email, password_hash, username, balance) VALUES (?, ?, ?, ?)", [email, hash, username, balance]);
+		} catch (err) {
+			if (err && err.code === "SQLITE_CONSTRAINT") {
+				return res.status(409).json({ error: "An account with that email already exists." });
+			}
+			throw err;
+		}
 
-		//we can modify this based on what the frontend needs
-		const user = await db.get("SELECT id, email, username, balance FROM users WHERE email = ?", [email]);
-
-		// TODO: fix genToken
-		const token = genToken(user);
+		const user = await db.get("SELECT id, email, username, balance, is_admin FROM users WHERE email = ?", [email]);
 
 		//created new resource, ret 201 along w their JWT from the middleware
-		res.status(201).json({ token: genToken(user), user });
+		res.status(201).json({ token: genToken(user.id), user });
 	} catch (err) {
 		res.status(500).json({ error: "Something went wrong with registration. Please try again." });
 	}
@@ -53,7 +55,8 @@ router.post("/login", async (req, res) => {
 		//check whether password is correct
 		const pwCheck = await bcrypt.compare(password, user.password_hash);
 		if (pwCheck) {
-			return res.json({ token: genToken(user), user: user });
+			const safeUser = { id: user.id, email: user.email, username: user.username, balance: user.balance, is_admin: user.is_admin };
+			return res.json({ token: genToken(user.id), user: safeUser });
 		}
 		return res.status(401).json({ error: "Bad email or password" });
 	} catch (err) {
