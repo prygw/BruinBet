@@ -52,7 +52,7 @@ function RegistrationPage({ message, mode, onModeChange, onAuthenticate }) {
         user: data.user,
         displayName: data.user.username || displayName.trim(),
       })
-    } catch (err) {
+    } catch {
       setError('Network error. Please try again.')
       setLoading(false)
     }

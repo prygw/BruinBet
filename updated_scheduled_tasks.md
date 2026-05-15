@@ -33,20 +33,20 @@ Primary goals:
 
 ### Needs Fixing Before More Feature Work
 
-- `middleware/requireAdmin.js` does not call `next()`, so admin routes will hang.
-- `routes/auth.js` sets new user balance to `1000`, while the schema and original plan expect `10000`.
-- Server-side UCLA email validation is not enforced in `routes/auth.js`.
-- Registration does not validate required `email`, `password`, or `username` before hashing/inserting.
-- `GET /api/markets/:id` is still a stub.
+- ~~`middleware/requireAdmin.js` does not call `next()`, so admin routes will hang.~~
+- ~~`routes/auth.js` sets new user balance to `1000`, while the schema and original plan expect `10000`.~~
+- ~~Server-side UCLA email validation is not enforced in `routes/auth.js`.~~
+- ~~Registration does not validate required `email`, `password`, or `username` before hashing/inserting.~~
+- ~~`GET /api/markets/:id` is still a stub.~~
 - `POST /api/markets` is still a stub.
 - Market cards do not yet show prices, liquidity, or option stats.
-- Search currently filters already-loaded frontend data; the rubric asks for meaningful search through server data, so `GET /api/markets?search=...` should be implemented.
+- ~~Search currently filters already-loaded frontend data; the rubric asks for meaningful search through server data, so `GET /api/markets?search=...` should be implemented.~~
 - There is no place-bet API.
 - There is no bet detail page or wager UI.
 - There is no portfolio API or portfolio UI.
 - There is no leaderboard API or leaderboard UI.
 - There are no automated end-to-end tests.
-- The root `README.md` is too sparse for the rubric.
+- ~~The root `README.md` is too sparse for the rubric.~~
 - There are no architecture diagrams in the README.
 
 ## Rubric Coverage Check
