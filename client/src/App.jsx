@@ -242,12 +242,24 @@ function Dashboard({ session }) {
 function MarketPreviewGrid({ actionLabel, onPlaceBet, searchTerm, previewLimit, title = 'Campus market preview' }) {
   const [markets, setMarkets] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     fetch(`${BASE_URL}/api/markets?status=open`)
-      .then((res) => res.json())
-      .then((data) => setMarkets(data.markets || []))
-      .catch(() => setMarkets([]))
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error('Market request failed')
+        }
+        return res.json()
+      })
+      .then((data) => {
+        setMarkets(data.markets || [])
+        setError('')
+      })
+      .catch(() => {
+        setMarkets([])
+        setError('Unable to load markets. Please try again later.')
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -260,6 +272,7 @@ function MarketPreviewGrid({ actionLabel, onPlaceBet, searchTerm, previewLimit, 
   const filteredMarkets = previewLimit ? filtered.slice(0, previewLimit) : filtered
 
   if (loading) return <p className="empty-results">Loading markets...</p>
+  if (error) return <p className="empty-results">{error}</p>
 
   return (
     <section className="markets-layout" aria-labelledby="markets-title">

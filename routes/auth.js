@@ -1,4 +1,4 @@
-const INITIAL_BALANCE = 1000;
+const INITIAL_BALANCE = 10000;
 
 const { getDb } = require("../server/db");
 const express = require("express");
@@ -6,11 +6,18 @@ const bcrypt = require("bcrypt");
 const { genToken } = require("../middleware/auth");
 
 const router = express.Router();
+const UCLA_EMAIL_PATTERN = /^[^@\s]+@(?:g\.)?ucla\.edu$/i;
 
 router.post("/register", async (req, res) => {
 	try {
 		//we take these to create the acct 
 		const { email, password, username } = req.body;
+		if (!email || !password || !username) {
+			return res.status(400).json({ error: "Email, password, and username are required." });
+		}
+		if (!UCLA_EMAIL_PATTERN.test(email || "")) {
+			return res.status(400).json({ error: "Use a UCLA email ending in @ucla.edu or @g.ucla.edu." });
+		}
 		const hash = await bcrypt.hash(password, 10);
 		const db = await getDb();
 
@@ -34,6 +41,9 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
 	try {
 		const { email, password } = req.body;
+		if (!email || !password) {
+			return res.status(400).json({ error: "Email and password are required." });
+		}
 		const db = await getDb();
 		const user = await db.get("SELECT * FROM users WHERE email = ?", [email]);
 		//if no user w this email has been created we ret a generic message to avoid leaking information
@@ -52,5 +62,3 @@ router.post("/login", async (req, res) => {
 });
 
 module.exports = router;
-
-

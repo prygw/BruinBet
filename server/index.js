@@ -9,12 +9,6 @@ const port = process.env.PORT || 5001;
 app.use(cors());
 app.use(express.json());
 
-//verify ucla email address
-function validateEmail(email) {
-	const regex = /^[a-zA-Z0-9._%+-]+@ucla\.edu$/i;
-	return regex.test(email);
-}
-
 app.get('/', (req, res) => {
 	res.send('API is running!');
 });
