@@ -4,7 +4,7 @@ function Header({
   session,
   searchTerm,
   onSearchChange,
-  onNavigateLanding,
+  onNavigateHome,
   onNavigateDashboard,
   onShowAuth,
   onLogout,
@@ -14,7 +14,7 @@ function Header({
       <button
         className="brand"
         type="button"
-        onClick={onNavigateLanding}
+        onClick={onNavigateHome}
       >
         <img className="brand-logo" src={logo} alt="BruinBet" />
         <span>
@@ -48,7 +48,7 @@ function Header({
       <nav className="nav-actions" aria-label="Primary navigation">
         {session ? (
           <>
-            <button type="button" onClick={onNavigateLanding}>
+            <button type="button" onClick={onNavigateHome}>
               Markets
             </button>
             <button type="button" onClick={onNavigateDashboard}>
@@ -60,7 +60,7 @@ function Header({
           </>
         ) : (
           <>
-            <button type="button" onClick={onNavigateLanding}>
+            <button type="button" onClick={onNavigateHome}>
               Markets
             </button>
             <button type="button" onClick={() => onShowAuth('login')}>
