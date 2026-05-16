@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 import RegistrationPage from './Registration'
-import logo from './assets/logo.PNG'
 import BASE_URL from './api'
 import { usePersistedSession } from './hooks/usePersistedSession'
+import Header from './components/Header'
 
 function formatTimeRemaining(closesAt) {
   const diff = new Date(closesAt) - Date.now()
@@ -63,74 +63,15 @@ function App() {
 
   return (
     <div className="app-shell">
-      <header className="site-header">
-        <button
-          className="brand"
-          type="button"
-          onClick={() => setActiveView('landing')}
-        >
-          <img className="brand-logo" src={logo} alt="BruinBet" />
-          <span>
-            <strong>BruinBet</strong>
-            <small>UCLA prediction markets</small>
-          </span>
-        </button>
-
-        <form
-          className="market-search"
-          onSubmit={(event) => event.preventDefault()}
-          role="search"
-        >
-          <svg
-            aria-hidden="true"
-            className="search-icon"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path d="m21 21-4.3-4.3m1.3-5.2a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z" />
-          </svg>
-          <input
-            aria-label="Search markets"
-            onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Search markets..."
-            type="search"
-            value={searchTerm}
-          />
-        </form>
-
-        <nav className="nav-actions" aria-label="Primary navigation">
-          {session ? (
-            <>
-              <button type="button" onClick={() => setActiveView('landing')}>
-                Markets
-              </button>
-              <button type="button" onClick={() => setActiveView('dashboard')}>
-                Dashboard
-              </button>
-              <button className="logout-button" type="button" onClick={handleLogout}>
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <button type="button" onClick={() => setActiveView('landing')}>
-                Markets
-              </button>
-              <button type="button" onClick={() => showAuth('login')}>
-                Login
-              </button>
-              <button
-                className="primary-button"
-                type="button"
-                onClick={() => showAuth('register')}
-              >
-                Sign up
-              </button>
-            </>
-          )}
-        </nav>
-      </header>
-
+      <Header
+        session={session}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        onNavigateLanding={() => setActiveView('landing')}
+        onNavigateDashboard={() => setActiveView('dashboard')}
+        onShowAuth={showAuth}
+        onLogout={handleLogout}
+      />
       <main>
         {activeView === 'landing' && (
           <Landing
