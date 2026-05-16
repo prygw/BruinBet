@@ -3,7 +3,7 @@ import './App.css'
 import RegistrationPage from './Registration'
 import logo from './assets/logo.PNG'
 import BASE_URL from './api'
-import { SESSION_KEY, getStoredSession } from './utils/session'
+import { usePersistedSession } from './hooks/usePersistedSession'
 
 function formatTimeRemaining(closesAt) {
   const diff = new Date(closesAt) - Date.now()
@@ -16,22 +16,13 @@ function formatTimeRemaining(closesAt) {
 }
 
 function App() {
-  const [session, setSession] = useState(() => getStoredSession())
+  const [session, setSession] = usePersistedSession()
   const [activeView, setActiveView] = useState(() =>
-    getStoredSession() ? 'dashboard' : 'landing',
+    session ? 'dashboard' : 'landing',
   )
   const [authMode, setAuthMode] = useState('register')
   const [authPrompt, setAuthPrompt] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
-
-  useEffect(() => {
-    if (session) {
-      localStorage.setItem(SESSION_KEY, JSON.stringify(session))
-      return
-    }
-
-    localStorage.removeItem(SESSION_KEY)
-  }, [session])
 
   function handleAuthenticate({ token, user, displayName }) {
     setSession({
