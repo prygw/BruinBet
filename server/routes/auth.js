@@ -1,6 +1,6 @@
 const INITIAL_BALANCE = 10000;
 
-const { getDb } = require("../server/db");
+const { getDb } = require("../db");
 const express = require("express");
 const bcrypt = require("bcrypt");
 const { genToken } = require("../middleware/auth");
