@@ -3,8 +3,9 @@ const { getDb } = require("../db");
 async function requireAdmin(req, res, next)
 {
     try {
-        if (req.userId)
-        {
+        if (!req.userId){
+            return res.status(401).json({error: "Must authenticate."});
+        }
             const db = await getDb();
             const user = await db.get("SELECT is_admin from users WHERE id=?", [req.userId]);
             if (!user || !user.is_admin)
@@ -13,7 +14,6 @@ async function requireAdmin(req, res, next)
             }
             next();
         }
-    }
     catch(err) {
         return res.status(500).json({error: "Not admin."});
     }
