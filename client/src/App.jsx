@@ -1,48 +1,19 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 import RegistrationPage from './Registration'
-import logo from './assets/logo.PNG'
-import BASE_URL from './api'
-
-const SESSION_KEY = 'bruinbet-session'
-
-function formatTimeRemaining(closesAt) {
-  const diff = new Date(closesAt) - Date.now()
-  if (diff <= 0) return 'Closed'
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-  if (days > 0) return `${days}d ${hours}h`
-  const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
-  return `${hours}h ${mins}m`
-}
-
-function getStoredSession() {
-  try {
-    const storedSession = localStorage.getItem(SESSION_KEY)
-    return storedSession ? JSON.parse(storedSession) : null
-  } catch {
-    localStorage.removeItem(SESSION_KEY)
-    return null
-  }
-}
+import { usePersistedSession } from './hooks/usePersistedSession'
+import Header from './components/Header'
+import HomePage from './pages/HomePage'
+import DashboardPage from './pages/DashboardPage'
 
 function App() {
-  const [session, setSession] = useState(() => getStoredSession())
+  const [session, setSession] = usePersistedSession()
   const [activeView, setActiveView] = useState(() =>
-    getStoredSession() ? 'dashboard' : 'landing',
+    session ? 'dashboard' : 'home',
   )
   const [authMode, setAuthMode] = useState('register')
   const [authPrompt, setAuthPrompt] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
-
-  useEffect(() => {
-    if (session) {
-      localStorage.setItem(SESSION_KEY, JSON.stringify(session))
-      return
-    }
-
-    localStorage.removeItem(SESSION_KEY)
-  }, [session])
 
   function handleAuthenticate({ token, user, displayName }) {
     setSession({
@@ -60,7 +31,7 @@ function App() {
   function handleLogout() {
     setSession(null)
     setAuthMode('login')
-    setActiveView('landing')
+    setActiveView('home')
     setAuthPrompt('')
   }
 
@@ -83,77 +54,18 @@ function App() {
 
   return (
     <div className="app-shell">
-      <header className="site-header">
-        <button
-          className="brand"
-          type="button"
-          onClick={() => setActiveView('landing')}
-        >
-          <img className="brand-logo" src={logo} alt="BruinBet" />
-          <span>
-            <strong>BruinBet</strong>
-            <small>UCLA prediction markets</small>
-          </span>
-        </button>
-
-        <form
-          className="market-search"
-          onSubmit={(event) => event.preventDefault()}
-          role="search"
-        >
-          <svg
-            aria-hidden="true"
-            className="search-icon"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path d="m21 21-4.3-4.3m1.3-5.2a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z" />
-          </svg>
-          <input
-            aria-label="Search markets"
-            onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Search markets..."
-            type="search"
-            value={searchTerm}
-          />
-        </form>
-
-        <nav className="nav-actions" aria-label="Primary navigation">
-          {session ? (
-            <>
-              <button type="button" onClick={() => setActiveView('landing')}>
-                Markets
-              </button>
-              <button type="button" onClick={() => setActiveView('dashboard')}>
-                Dashboard
-              </button>
-              <button className="logout-button" type="button" onClick={handleLogout}>
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <button type="button" onClick={() => setActiveView('landing')}>
-                Markets
-              </button>
-              <button type="button" onClick={() => showAuth('login')}>
-                Login
-              </button>
-              <button
-                className="primary-button"
-                type="button"
-                onClick={() => showAuth('register')}
-              >
-                Sign up
-              </button>
-            </>
-          )}
-        </nav>
-      </header>
-
+      <Header
+        session={session}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        onNavigateHome={() => setActiveView('home')}
+        onNavigateDashboard={() => setActiveView('dashboard')}
+        onShowAuth={showAuth}
+        onLogout={handleLogout}
+      />
       <main>
-        {activeView === 'landing' && (
-          <Landing
+        {activeView === 'home' && (
+          <HomePage
             onPlaceBet={handlePlaceBet}
             onShowAuth={showAuth}
             searchTerm={searchTerm}
@@ -175,150 +87,6 @@ function App() {
         )}
       </main>
     </div>
-  )
-}
-
-function Landing({ onPlaceBet, onShowAuth, searchTerm, session }) {
-  return (
-    <section className="landing-layout" aria-labelledby="landing-title">
-      <div className="landing-hero">
-        <p className="eyebrow">Open markets</p>
-        <h1 id="landing-title">Browse campus predictions before you bet</h1>
-        <p>
-          Track active UCLA markets, compare prices, and sign in only when you
-          are ready to place a position.
-        </p>
-        {!session && (
-          <div className="hero-actions">
-            <button
-              className="primary-button"
-              type="button"
-              onClick={() => onShowAuth('register')}
-            >
-              Sign up to bet
-            </button>
-            <button
-              className="secondary-button"
-              type="button"
-              onClick={() => onShowAuth('login')}
-            >
-              Login
-            </button>
-          </div>
-        )}
-      </div>
-
-      <MarketPreviewGrid
-        actionLabel={session ? 'Place bet' : 'Sign up to bet'}
-        onPlaceBet={onPlaceBet}
-        searchTerm={searchTerm}
-        previewLimit={session ? null : 3}
-      />
-    </section>
-  )
-}
-
-function Dashboard({ session }) {
-  return (
-    <section className="dashboard-layout" aria-labelledby="dashboard-title">
-      <div className="dashboard-panel">
-        <p className="eyebrow">Signed in</p>
-        <h1 id="dashboard-title">Welcome, {session.displayName}</h1>
-        <p>Your UCLA account is active.</p>
-      </div>
-
-      <div className="account-summary" aria-label="Account summary">
-        <SummaryItem label="Email" value={session.email} />
-        <SummaryItem
-          label="Balance"
-          value={`$${session.balance.toLocaleString()}`}
-        />
-        <SummaryItem label="Access" value="Betting enabled" />
-      </div>
-    </section>
-  )
-}
-
-function MarketPreviewGrid({ actionLabel, onPlaceBet, searchTerm, previewLimit, title = 'Campus market preview' }) {
-  const [markets, setMarkets] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    fetch(`${BASE_URL}/api/markets?status=open`)
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error('Market request failed')
-        }
-        return res.json()
-      })
-      .then((data) => {
-        setMarkets(data.markets || [])
-        setError('')
-      })
-      .catch(() => {
-        setMarkets([])
-        setError('Unable to load markets. Please try again later.')
-      })
-      .finally(() => setLoading(false))
-  }, [])
-
-  const normalizedSearch = searchTerm.trim().toLowerCase()
-  const filtered = normalizedSearch
-    ? markets.filter((market) =>
-        market.market_name.toLowerCase().includes(normalizedSearch),
-      )
-    : markets
-  const filteredMarkets = previewLimit ? filtered.slice(0, previewLimit) : filtered
-
-  if (loading) return <p className="empty-results">Loading markets...</p>
-  if (error) return <p className="empty-results">{error}</p>
-
-  return (
-    <section className="markets-layout" aria-labelledby="markets-title">
-      <div className="section-heading">
-        <p className="eyebrow">Active markets</p>
-        <h1 id="markets-title">{title}</h1>
-      </div>
-
-      <div className="market-grid">
-        {filteredMarkets.map((market) => (
-          <article className="market-card" key={market.id}>
-            <h2>{market.market_name}</h2>
-            <dl>
-              <div>
-                <dt>Closes</dt>
-                <dd>{formatTimeRemaining(market.closes_at)}</dd>
-              </div>
-            </dl>
-            <button
-              className="market-action"
-              type="button"
-              onClick={onPlaceBet}
-            >
-              {actionLabel}
-            </button>
-          </article>
-        ))}
-      </div>
-
-      {previewLimit && filtered.length > previewLimit && (
-        <p className="empty-results">Sign up to see all {filtered.length} markets.</p>
-      )}
-
-      {filteredMarkets.length === 0 && (
-        <p className="empty-results">No open markets right now.</p>
-      )}
-    </section>
-  )
-}
-
-function SummaryItem({ label, value }) {
-  return (
-    <article className="summary-item">
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </article>
   )
 }
 
