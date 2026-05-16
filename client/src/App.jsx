@@ -3,8 +3,7 @@ import './App.css'
 import RegistrationPage from './Registration'
 import logo from './assets/logo.PNG'
 import BASE_URL from './api'
-
-const SESSION_KEY = 'bruinbet-session'
+import { SESSION_KEY, getStoredSession } from './utils/session'
 
 function formatTimeRemaining(closesAt) {
   const diff = new Date(closesAt) - Date.now()
@@ -14,16 +13,6 @@ function formatTimeRemaining(closesAt) {
   if (days > 0) return `${days}d ${hours}h`
   const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
   return `${hours}h ${mins}m`
-}
-
-function getStoredSession() {
-  try {
-    const storedSession = localStorage.getItem(SESSION_KEY)
-    return storedSession ? JSON.parse(storedSession) : null
-  } catch {
-    localStorage.removeItem(SESSION_KEY)
-    return null
-  }
 }
 
 function App() {
