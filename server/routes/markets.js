@@ -19,6 +19,26 @@ function getMarketStatus(row, now = Date.now()) {
     return "open";
 }
 
+function normalizeOptionLabels(options) {
+    if (!Array.isArray(options)) {
+        return [];
+    }
+
+    return options
+        .map(option => {
+            if (typeof option === "string") {
+                return option.trim();
+            }
+
+            if (option && typeof option.label === "string") {
+                return option.label.trim();
+            }
+
+            return "";
+        })
+        .filter(Boolean);
+}
+
 
 // GET /api/markets --> get markets based on status --> checkAuth option for now
 router.get('/', async (req, res) => {
@@ -124,11 +144,86 @@ router.get('/:id', async (req, res) => {
 
 // admin-only, create a new market with options -> request body should include all necessary info (e.g. question, options, closing time, etc)
 router.post('/', checkAuth, requireAdmin, async (req, res) => {
+    let transactionStarted = false;
+
     try {
-        // should have some validation logic here
-        // insert market and options into database via transaction
-        res.status(201).json({ message: "Market creation" });
+        const marketName = (req.body.market_name || req.body.title || "").trim();
+        const description = (req.body.description || "").trim();
+        const category = (req.body.category || "").trim() || null;
+        const closesAtRaw = req.body.closes_at;
+        const optionLabels = normalizeOptionLabels(req.body.options);
+
+        if (!marketName) {
+            return res.status(400).json({ error: "Market name is required" });
+        }
+
+        if (!description) {
+            return res.status(400).json({ error: "Description is required" });
+        }
+
+        const closesAtMs = Date.parse(closesAtRaw);
+        if (!closesAtRaw || Number.isNaN(closesAtMs)) {
+            return res.status(400).json({ error: "A valid closes_at date is required" });
+        }
+
+        if (closesAtMs <= Date.now()) {
+            return res.status(400).json({ error: "closes_at must be in the future" });
+        }
+
+        const uniqueOptionLabels = [...new Set(optionLabels)];
+        if (uniqueOptionLabels.length < 2) {
+            return res.status(400).json({ error: "At least two unique options are required" });
+        }
+
+        const db = await getDb();
+        await db.run("BEGIN");
+        transactionStarted = true;
+
+        const marketResult = await db.run(
+            `
+                INSERT INTO markets (market_name, description, category, closes_at, created_by)
+                VALUES (?, ?, ?, ?, ?)
+            `,
+            [marketName, description, category, new Date(closesAtMs).toISOString(), req.userId]
+        );
+
+        const marketId = marketResult.lastID;
+        const createdOptions = [];
+
+        for (const label of uniqueOptionLabels) {
+            const optionResult = await db.run(
+                "INSERT INTO market_options (market_id, label) VALUES (?, ?)",
+                [marketId, label]
+            );
+
+            createdOptions.push({
+                id: optionResult.lastID,
+                market_id: marketId,
+                label,
+            });
+        }
+
+        await db.run("COMMIT");
+        transactionStarted = false;
+
+        res.status(201).json({
+            market: {
+                id: marketId,
+                market_name: marketName,
+                description,
+                category,
+                status: "open",
+                closes_at: new Date(closesAtMs).toISOString(),
+                created_by: req.userId,
+                options: createdOptions,
+            },
+        });
     } catch (err) {
+        if (transactionStarted) {
+            const db = await getDb();
+            await db.run("ROLLBACK");
+        }
+
         console.error(err);
         res.status(500).json({ error: "Internal Server Error with creating market" });
     }
