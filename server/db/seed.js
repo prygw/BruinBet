@@ -1,18 +1,21 @@
 const { getDb } = require('./index');
+const bcrypt = require('bcrypt');
 
 async function seed() {
     const db = await getDb();
 
     const adminEmail = 'admin@ucla.edu';
-    const existing = await db.get('SELECT id FROM users WHERE email = ?', [adminEmail]);
+    const adminPasswordHash = await bcrypt.hash('password123', 10);
+    const existing = await db.get('SELECT id, password_hash FROM users WHERE email = ?', [adminEmail]);
 
     let adminId;
     if (existing) {
         adminId = existing.id;
+        await db.run('UPDATE users SET password_hash = ?, is_admin = 1 WHERE id = ?', [adminPasswordHash, adminId]);
     } else {
         const result = await db.run(
             'INSERT INTO users (email, password_hash, username, balance, is_admin) VALUES (?, ?, ?, ?, ?)',
-            [adminEmail, 'seedhash', 'admin', 10000, 1]
+            [adminEmail, adminPasswordHash, 'admin', 10000, 1]
         );
         adminId = result.lastID;
     }
