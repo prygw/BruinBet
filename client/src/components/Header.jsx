@@ -6,6 +6,7 @@ function Header({
   onSearchChange,
   onNavigateHome,
   onNavigateDashboard,
+  onNavigateAdminCreate,
   onShowAuth,
   onLogout,
 }) {
@@ -54,6 +55,11 @@ function Header({
             <button type="button" onClick={onNavigateDashboard}>
               Dashboard
             </button>
+            {session.is_admin && (
+              <button type="button" onClick={onNavigateAdminCreate}>
+                Create market
+              </button>
+            )}
             <button className="logout-button" type="button" onClick={onLogout}>
               Logout
             </button>

@@ -63,17 +63,10 @@ function App() {
         onSearchChange={setSearchTerm}
         onNavigateHome={() => setActiveView('home')}
         onNavigateDashboard={() => setActiveView('dashboard')}
+        onNavigateAdminCreate={() => setActiveView('admin-create')}
         onShowAuth={showAuth}
         onLogout={handleLogout}
       />
-      
-      {session?.is_admin && (
-        <div className="admin-nav-bar" style={{ padding: '10px', textAlign: 'center' }}>
-          <button onClick={() => setActiveView('admin-create')}>
-            Go to Admin Dashboard (Create Market)
-          </button>
-        </div>
-      )}
 
       <main>
         {activeView === 'home' && (
