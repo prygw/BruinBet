@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import './App.css'
 import RegistrationPage from './Registration'
 import { usePersistedSession } from './hooks/usePersistedSession'
@@ -83,7 +83,7 @@ function App() {
         )}
 
         {activeView === 'dashboard' && session && (
-          <Dashboard session={session} />
+          <DashboardPage session={session} />
         )}
       </main>
     </div>

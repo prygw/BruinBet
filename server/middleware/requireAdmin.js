@@ -1,22 +1,23 @@
 const { getDb } = require("../db");
 
-async function requireAdmin(req, res, next)
-{
+const requireAdmin = async (req, res, next) => {
     try {
-        if (!req.userId){
-            return res.status(401).json({error: "Must authenticate."});
+        if (!req.userId) {
+            return res.status(401).json({ error: "Authentication required" });
         }
-            const db = await getDb();
-            const user = await db.get("SELECT is_admin from users WHERE id=?", [req.userId]);
-            if (!user || !user.is_admin)
-            {
-                return res.status(403).json({error: "Admin Access required."})
-            }
-            next();
+
+        const db = await getDb();
+        const user = await db.get("SELECT is_admin FROM users WHERE id = ?", [req.userId]);
+
+        if (!user || !user.is_admin) {
+            return res.status(403).json({ error: "Admin access required" });
         }
-    catch(err) {
-        return res.status(500).json({error: "Not admin."});
+
+        next();
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Internal Server Error with admin verification" });
     }
-}
+};
 
 module.exports = { requireAdmin };
