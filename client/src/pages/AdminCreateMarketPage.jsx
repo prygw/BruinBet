@@ -1,8 +1,7 @@
 import { useState } from 'react'
-import BASE_URL from '../api'
+import { useCreateMarket } from '../hooks/useCreateMarket'
 
 function AdminCreateMarketPage({ session, onCreated }) {
-  // Added a fallback for serverError if session check fails initially
   if (!session || !onCreated) {
     return <p className="form-server-error">Either session or onCreated callback is missing. Please ensure you are logged in and try again.</p>;
   }
@@ -12,45 +11,27 @@ function AdminCreateMarketPage({ session, onCreated }) {
   const [category, setCategory] = useState('')
   const [closesAt, setClosesAt] = useState('')
   const [errors, setErrors] = useState({})
-  const [serverError, setServerError] = useState('')
-  const [submitting, setSubmitting] = useState(false)
+
+  const { submit, submitting, error: serverError } = useCreateMarket(session.token)
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-    setServerError('')
-    setErrors({}) 
+    setErrors({})
 
-    setSubmitting(true)
-    try {
-      const response = await fetch(`${BASE_URL}/api/markets`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          market_name: marketName.trim(),
-          description: description.trim(),
-          category: category.trim() || null,
-          closes_at: closesAt ? new Date(closesAt).toISOString() : null,
-          options: ['Yes', 'No'], // Hardcoded to always be Yes/No
-        }),
-      })
+    const market = await submit({
+      market_name: marketName.trim(),
+      description: description.trim(),
+      category: category.trim() || null,
+      closes_at: closesAt ? new Date(closesAt).toISOString() : null,
+      options: ['Yes', 'No'],
+    })
 
-      const data = await response.json()
-      if (!response.ok) {
-        setServerError(data.error || 'Failed to create market')
-        return
-      }
-
-      // reset form
+    if (market) {
       setMarketName('')
       setDescription('')
       setCategory('')
       setClosesAt('')
-      onCreated(data.market);
-    } catch (err) {
-      setServerError('Network error. Please try again.')
-    } finally {
-      setSubmitting(false)
+      onCreated(market)
     }
   }
 
@@ -60,11 +41,6 @@ function AdminCreateMarketPage({ session, onCreated }) {
 
   return (
     <section className="landing-layout flex-center-wrapper" aria-labelledby="admin-create-title">
-      
-      {/* This div acts as the modal/box. 
-        CSS idea: max-width: 550px, margin: 40px auto, background: white, 
-        border-radius: 12px, box-shadow: 0 4px 15px rgba(0,0,0,0.05), padding: 32px 
-      */}
       <div className="market-creation-card" style={{ maxWidth: '600px', margin: '40px auto', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', backgroundColor: '#232f48' }}>
         
         <div className="section-heading" style={{ textAlign: 'center', marginBottom: '24px' }}>
@@ -102,7 +78,6 @@ function AdminCreateMarketPage({ session, onCreated }) {
             {errors.description && <span className="field-error">{errors.description}</span>}
           </div>
 
-          {/* Side-by-side row for compact UI */}
           <div className="form-row" style={{ display: 'flex', gap: '16px', marginBottom: '20px' }}>
             <div className="form-group" style={{ flex: 1 }}>
               <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px' }}>Category (optional)</label>
@@ -128,7 +103,6 @@ function AdminCreateMarketPage({ session, onCreated }) {
             </div>
           </div>
 
-          {/* Visual indicator of the locked options */}
           <div className="form-group" style={{ marginBottom: '24px' }}>
              <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px' }}>Outcomes</label>
              <div style={{ display: 'flex', gap: '10px' }}>
@@ -143,7 +117,6 @@ function AdminCreateMarketPage({ session, onCreated }) {
             </p>
           )}
 
-          {/* Centered Publish Button */}
           <div className="form-actions" style={{ display: 'flex', justifyContent: 'center', marginTop: '30px' }}>
             <button 
               type="submit" 
