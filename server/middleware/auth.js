@@ -7,7 +7,7 @@ function checkAuth(req, res, next) {
 	//if a path requires auth, the api reqs must contain an auth header with a signed jwt
 	const header = req.headers.authorization;
 	if (!header || !header.startsWith("Bearer ")) {
-		return res.status(401).json({ error: "Malformed Auth or Does not Exist" });
+		return res.status(401).json({ error: "Authentication required. Log in and try again." });
 	}
 	//if it does exist, and is in proper format: "Bearer [jwt]", we process it
 	try {
@@ -16,7 +16,7 @@ function checkAuth(req, res, next) {
 		next();
 	}
 	catch (err) {
-		return res.status(401).json({ error: "Malformed Auth" });
+		return res.status(401).json({ error: "Authentication token is invalid or expired" });
 	}
 }
 
