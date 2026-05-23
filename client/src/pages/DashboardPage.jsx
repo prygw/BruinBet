@@ -1,3 +1,5 @@
+import SummaryItem from '../components/SummaryItem'
+
 function DashboardPage({ session }) {
   return (
     <section className="dashboard-layout" aria-labelledby="dashboard-title">
@@ -16,15 +18,6 @@ function DashboardPage({ session }) {
         <SummaryItem label="Access" value="Betting enabled" />
       </div>
     </section>
-  )
-}
-
-function SummaryItem({ label, value }) {
-  return (
-    <article className="summary-item">
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </article>
   )
 }
 

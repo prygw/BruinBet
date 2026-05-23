@@ -5,6 +5,8 @@ import { usePersistedSession } from './hooks/usePersistedSession'
 import Header from './components/Header'
 import HomePage from './pages/HomePage'
 import DashboardPage from './pages/DashboardPage'
+import LeaderboardPage from './pages/LeaderboardPage'
+import PortfolioPage from './pages/PortfolioPage'
 
 function App() {
   const [session, setSession] = usePersistedSession()
@@ -60,6 +62,8 @@ function App() {
         onSearchChange={setSearchTerm}
         onNavigateHome={() => setActiveView('home')}
         onNavigateDashboard={() => setActiveView('dashboard')}
+        onNavigateLeaderboard={() => setActiveView('leaderboard')}
+        onNavigatePortfolio={() => setActiveView('portfolio')}
         onShowAuth={showAuth}
         onLogout={handleLogout}
       />
@@ -84,6 +88,12 @@ function App() {
 
         {activeView === 'dashboard' && session && (
           <DashboardPage session={session} />
+        )}
+
+        {activeView === 'leaderboard' && <LeaderboardPage />}
+
+        {activeView === 'portfolio' && session && (
+          <PortfolioPage session={session} />
         )}
       </main>
     </div>
