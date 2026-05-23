@@ -32,7 +32,7 @@ function validateRegisterReqBody(body)
 function validateLoginReqBody(body)
 {
 	const {email,password} = body;
-	if (!email.trim() || !password) return "Email and Password are required.";
+	if (!email || !password) return "Email and Password are required.";
 	if (!EMAIL_PATTERN.test(email.trim())) return "Email must be a UCLA email";
 	return null;
 }
@@ -93,6 +93,7 @@ router.post("/login", async (req, res) => {
 		}
 		return res.status(401).json({ error: "Bad email or password" });
 	} catch (err) {
+		console.error("LOGIN ROUTE CRASH DETAILED ERROR:", err);
 		return res.status(500).json({ error: "Something went wrong with login. Please try again." });
 	}
 });

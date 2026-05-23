@@ -57,7 +57,7 @@ function MarketPreviewGrid({ actionLabel, onPlaceBet, searchTerm, previewLimit, 
             <button
               className="market-action"
               type="button"
-              onClick={onPlaceBet}
+              onClick={() => onPlaceBet(market)}
             >
               {actionLabel}
             </button>
