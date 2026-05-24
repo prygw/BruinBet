@@ -46,7 +46,43 @@ export function usePlaceBet() {
                 throw new Error(data.error || 'Bet failed')
             }
 
-            setResult(data)
+            // temporarily store basic response
+            let finalResult = data
+
+            // fetch updated market data so UI can show distribution
+            try {
+                const marketRes = await fetch(`${BASE_URL}/api/markets/${marketId}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                })
+                if (marketRes.ok) {
+                    const marketJson = await marketRes.json()
+                    const market = marketJson.market
+                    if (market && Array.isArray(market.options)) {
+                        const total = market.options.reduce((s, o) => s + (o.total_liquidity || 0), 0)
+
+                        // compute % for every option, not just the chosen one
+                        // the modal needs both to draw the split bar
+                        const optionsWithPct = market.options.map((o) => {
+                            const liq = o.total_liquidity || 0
+                            const pct = total > 0 ? Number(((liq / total) * 100).toFixed(1)) : 0
+                            return { ...o, percent: pct }
+                        })
+
+                        const chosen = optionsWithPct.find((o) => o.id === optionId)
+
+                        finalResult = {
+                            ...data,
+                            market: { ...market, options: optionsWithPct },
+                            chosenOptionId: optionId,
+                            chosenLabel: chosen ? chosen.label : undefined,
+                        }
+                    }
+                }
+            } catch (err2) {
+                // ignore; fall back to basic data
+            }
+
+            setResult(finalResult)
             setStatus(BET_STATUS.SUCCESS)
         } catch (err) {
             setError(err.message || 'Could not place bet')

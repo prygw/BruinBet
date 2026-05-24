@@ -13,6 +13,7 @@ function PlaceBetModal({ market, balance, onClose }) {
     const a = opts[0]
     const b = opts[1]
     const haveOptions = Boolean(a && b)
+    const canPlaceBet = haveOptions && choice && Number(amount) >= 1
 
     async function handleSubmit() {
         const num = parseFloat(amount)
@@ -50,14 +51,113 @@ function PlaceBetModal({ market, balance, onClose }) {
                 </div>
 
                 {status === BET_STATUS.SUCCESS ? (
-                    <>
-                        <p className="form-message">Bet placed! New balance: <strong>{result.balance}</strong></p>
-                        <div className="modal-actions">
-                            <button type="button" className="primary-button" onClick={onClose}>
-                                Done
-                            </button>
-                        </div>
-                    </>
+                    (() => {
+                        const resultOptions = (result && result.market && result.market.options) || opts
+                        const first = resultOptions[0]
+                        const second = resultOptions[1]
+                        const chosenId = result && result.chosenOptionId
+
+                        // add some point should standardize these for all files ngl
+                        const FIRST_COLOR = '#ffd100'
+                        const SECOND_COLOR = '#2774ae'
+
+                        return (
+                            <div style={{ display: 'grid', gap: 18, paddingTop: 4 }}>
+                                <p style={{ margin: 0, color: '#cbd5e1', fontSize: 15 }}>
+                                    New balance: <strong style={{ color: '#fff', fontSize: 20 }}>{result.balance}</strong>
+                                </p>
+
+                                <div>
+                                    <p style={{ margin: '0 0 8px', textTransform: 'uppercase', fontSize: 11, color: '#94a3b8', fontWeight: 800, letterSpacing: 0.5 }}>
+                                        Market distribution
+                                    </p>
+
+                                    {/* split bar two segments sized to their % share; chosen side gets outlined. */}
+                                    <div
+                                        role="img"
+                                        aria-label={`${first.label} ${first.percent}%, ${second.label} ${second.percent}%`}
+                                        style={{
+                                            display: 'flex',
+                                            height: 42,
+                                            borderRadius: 10,
+                                            overflow: 'hidden',
+                                            border: '1px solid rgba(255,255,255,0.1)',
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                width: `${first.percent}%`,
+                                                background: FIRST_COLOR,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                color: '#111827',
+                                                fontWeight: 800,
+                                                fontSize: 13,
+                                                outline: first.id === chosenId ? '3px solid #fff' : 'none',
+                                                outlineOffset: -3,
+                                                transition: 'width 420ms ease',
+                                                minWidth: first.percent > 0 ? 44 : 0,
+                                            }}
+                                        >
+                                            {first.percent > 8 && `${first.label} ${first.percent}%`}
+                                        </div>
+                                        <div
+                                            style={{
+                                                width: `${second.percent}%`,
+                                                background: SECOND_COLOR,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                color: '#fff',
+                                                fontWeight: 800,
+                                                fontSize: 13,
+                                                outline: second.id === chosenId ? '3px solid #fff' : 'none',
+                                                outlineOffset: -3,
+                                                transition: 'width 420ms ease',
+                                                minWidth: second.percent > 0 ? 44 : 0,
+                                            }}
+                                        >
+                                            {second.percent > 8 && `${second.label} ${second.percent}%`}
+                                        </div>
+                                    </div>
+
+                                    {/* legend underneath -- in case a segment is too narrow to show its inline label */}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#cbd5e1', marginTop: 10 }}>
+                                        <span>
+                                            <span style={{ display: 'inline-block', width: 10, height: 10, background: FIRST_COLOR, borderRadius: 2, marginRight: 6, verticalAlign: 'middle' }} />
+                                            {first.label} — {first.percent}%
+                                            {first.id === chosenId && <span style={{ marginLeft: 6, color: '#fff', fontWeight: 700 }}>(your bet)</span>}
+                                        </span>
+                                        <span>
+                                            <span style={{ display: 'inline-block', width: 10, height: 10, background: SECOND_COLOR, borderRadius: 2, marginRight: 6, verticalAlign: 'middle' }} />
+                                            {second.label} — {second.percent}%
+                                            {second.id === chosenId && <span style={{ marginLeft: 6, color: '#fff', fontWeight: 700 }}>(your bet)</span>}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                    <button
+                                        type="button"
+                                        onClick={onClose}
+                                        style={{
+                                            minHeight: 46,
+                                            padding: '0 22px',
+                                            fontWeight: 800,
+                                            background: '#ffd100',
+                                            color: '#111827',
+                                            borderRadius: 8,
+                                            border: 0,
+                                            cursor: 'pointer',
+                                        }}
+                                    >
+                                        Done
+                                    </button>
+                                </div>
+                            </div>
+                        )
+                    })()
                 ) : (
                     <>
                         {!haveOptions ? (
