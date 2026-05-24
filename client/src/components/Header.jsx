@@ -7,6 +7,8 @@ function Header({
   onNavigateHome,
   onNavigateDashboard,
   onNavigateAdminCreate,
+  onNavigateLeaderboard,
+  onNavigatePortfolio,
   onShowAuth,
   onLogout,
 }) {
@@ -52,6 +54,12 @@ function Header({
             <button type="button" onClick={onNavigateHome}>
               Markets
             </button>
+            <button type="button" onClick={onNavigatePortfolio}>
+              Portfolio
+            </button>
+            <button type="button" onClick={onNavigateLeaderboard}>
+              Leaderboard
+            </button>
             <button type="button" onClick={onNavigateDashboard}>
               Dashboard
             </button>
@@ -68,6 +76,9 @@ function Header({
           <>
             <button type="button" onClick={onNavigateHome}>
               Markets
+            </button>
+            <button type="button" onClick={onNavigateLeaderboard}>
+              Leaderboard
             </button>
             <button type="button" onClick={() => onShowAuth('login')}>
               Login

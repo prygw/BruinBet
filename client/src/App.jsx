@@ -6,6 +6,8 @@ import Header from './components/Header'
 import HomePage from './pages/HomePage'
 import DashboardPage from './pages/DashboardPage'
 import AdminCreateMarketPage from './pages/AdminCreateMarketPage'
+import LeaderboardPage from './pages/LeaderboardPage'
+import PortfolioPage from './pages/PortfolioPage'
 
 function App() {
   const [session, setSession] = usePersistedSession()
@@ -64,6 +66,8 @@ function App() {
         onNavigateHome={() => setActiveView('home')}
         onNavigateDashboard={() => setActiveView('dashboard')}
         onNavigateAdminCreate={() => setActiveView('admin-create')}
+        onNavigateLeaderboard={() => setActiveView('leaderboard')}
+        onNavigatePortfolio={() => setActiveView('portfolio')}
         onShowAuth={showAuth}
         onLogout={handleLogout}
       />
@@ -96,6 +100,12 @@ function App() {
 
         {activeView === 'dashboard' && session && (
           <DashboardPage session={session} />
+        )}
+
+        {activeView === 'leaderboard' && <LeaderboardPage />}
+
+        {activeView === 'portfolio' && session && (
+          <PortfolioPage session={session} />
         )}
       </main>
     </div>

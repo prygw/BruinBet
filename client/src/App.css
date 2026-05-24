@@ -178,7 +178,7 @@ main {
 
 .landing-hero {
   max-width: 820px;
-  padding: 42px 0 8px;
+  padding: 0 0 8px;
   text-align: left;
 }
 
@@ -430,6 +430,133 @@ dt {
   text-align: center;
 }
 
+.portfolio-meta {
+  margin: 8px 0 0;
+  color: #cbd5e1;
+  font-size: 15px;
+}
+
+.portfolio-list {
+  display: grid;
+  gap: 16px;
+}
+
+.portfolio-card {
+  padding: 22px 24px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(10, 16, 28, 0.72);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
+}
+
+.portfolio-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.portfolio-card-head h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.portfolio-description {
+  margin: 8px 0 18px;
+  color: #cbd5e1;
+  font-size: 14px;
+}
+
+.portfolio-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.portfolio-stats > div {
+  display: grid;
+  gap: 4px;
+}
+
+.portfolio-stats span {
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.portfolio-stats strong {
+  color: #ffffff;
+  font-size: 16px;
+}
+
+.portfolio-status {
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.status-open {
+  color: #86efac;
+}
+
+.status-expired,
+.status-closed {
+  color: #fcd34d;
+}
+
+.status-won {
+  color: #93c5fd;
+}
+
+.status-lost {
+  color: #fca5a5;
+}
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(10, 16, 28, 0.72);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
+}
+
+.leaderboard-table th,
+.leaderboard-table td {
+  padding: 14px 18px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.leaderboard-table th {
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.leaderboard-table td {
+  color: #f8fafc;
+  font-weight: 600;
+}
+
+.leaderboard-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.leaderboard-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
 .market-card h2 {
   min-height: 58px;
   margin: 0 0 24px;
@@ -486,10 +613,6 @@ dd {
   .dashboard-layout,
   .market-grid {
     grid-template-columns: 1fr;
-  }
-
-  .landing-hero {
-    padding-top: 20px;
   }
 
   .auth-intro,
