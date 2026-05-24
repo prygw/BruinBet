@@ -1,47 +1,44 @@
 import { useState } from 'react'
+import { usePlaceBet, BET_STATUS } from '../hooks/usePlaceBet'
 
-function fakePlaceBet({ amount }) {
-  // hardcoded to succeed for now, but should eventually call the API and handle errors appropriately
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        bet: { id: 999, amount },
-        balance: 850,
-      })
-    }, 400)
-  })
-}
-
-function PlaceBetModal({ market, onClose }) {
-    const [bettingOnChoice, setBettingOnChoice] = useState(null)
+function PlaceBetModal({ market, balance, onClose }) {
+    const [choice, setChoice] = useState(null)
     const [amount, setAmount] = useState('')
-    const [submitting, setSubmitting] = useState(false)
-    const [successInfo, setSuccessInfo] = useState(null)
+    const [err, setErr] = useState('')
+    const { submit, status, result, error } = usePlaceBet()
 
-    if (!market) {
-        return null
-    }
+    if (!market) return null
 
-    const options = Array.isArray(market.options) ? market.options : []
-    const optionA = options[0]
-    const optionB = options[1]
-    const hasOptions = Boolean(optionA && optionB)
-    const canPlaceBet = hasOptions && bettingOnChoice && Number(amount) >= 1
+    const opts = Array.isArray(market.options) ? market.options : []
+    const a = opts[0]
+    const b = opts[1]
+    const haveOptions = Boolean(a && b)
 
     async function handleSubmit() {
-        const chosenOption = options.find((o) => o.label === bettingOnChoice)
-        if (!chosenOption) {
+        const num = parseFloat(amount)
+
+        if (!haveOptions) {
+            setErr("This market doesn't have two options yet.")
             return
         }
 
-        setSubmitting(true)
-        const data = await fakePlaceBet({
-            marketId: market.id,
-            optionId: chosenOption.id,
-            amount: Number(amount),
-        })
-        setSuccessInfo({ balance: data.balance })
-        setSubmitting(false)
+        if (!choice) {
+            setErr('Pick an option first.')
+            return
+        }
+
+        if (!amount || Number.isNaN(num) || num < 1) {
+            setErr('Type a number >= 1')
+            return
+        }
+
+        if ((balance ?? 0) < num) {
+            setErr(`Not enough funds — you can bet up to $${(balance ?? 0)}`)
+            return
+        }
+
+        setErr('')
+        await submit({ marketId: market.id, optionId: (opts.find((o) => o.label === choice) || {}).id, amount: num })
     }
 
     return (
@@ -52,9 +49,9 @@ function PlaceBetModal({ market, onClose }) {
                     <h3>{market.market_name}</h3>
                 </div>
 
-                {successInfo ? (
+                {status === BET_STATUS.SUCCESS ? (
                     <>
-                        <p className="form-message">Bet placed! New balance: <strong>{successInfo.balance}</strong></p>
+                        <p className="form-message">Bet placed! New balance: <strong>{result.balance}</strong></p>
                         <div className="modal-actions">
                             <button type="button" className="primary-button" onClick={onClose}>
                                 Done
@@ -63,26 +60,26 @@ function PlaceBetModal({ market, onClose }) {
                     </>
                 ) : (
                     <>
-                        {!hasOptions ? (
+                        {!haveOptions ? (
                             <p className="form-message">This market does not have enough options to place a bet right now.</p>
                         ) : (
                             <div className="bet-grid">
                                 <div className="bet-field">
-                                    <label>Choose a side</label>
+                                    <label>Choose an option</label>
                                     <div className="bet-side-picker">
                                         <button
                                             type="button"
-                                            className={bettingOnChoice === optionA.label ? 'bet-option active' : 'bet-option'}
-                                            onClick={() => setBettingOnChoice(optionA.label)}
+                                            className={choice === a?.label ? 'bet-option active' : 'bet-option'}
+                                            onClick={() => { setChoice(a?.label); if (err) setErr('') }}
                                         >
-                                            {optionA.label}
+                                            {a?.label}
                                         </button>
                                         <button
                                             type="button"
-                                            className={bettingOnChoice === optionB.label ? 'bet-option active' : 'bet-option'}
-                                            onClick={() => setBettingOnChoice(optionB.label)}
+                                            className={choice === b?.label ? 'bet-option active' : 'bet-option'}
+                                            onClick={() => { setChoice(b?.label); if (err) setErr('') }}
                                         >
-                                            {optionB.label}
+                                            {b?.label}
                                         </button>
                                     </div>
                                 </div>
@@ -94,19 +91,27 @@ function PlaceBetModal({ market, onClose }) {
                                         min="1"
                                         step="1"
                                         value={amount}
-                                        onChange={(e) => setAmount(e.target.value)}
-                                        disabled={submitting}
+                                        onChange={(e) => { setAmount(e.target.value); if (err) setErr('') }}
+                                        className={err && err.includes('Not enough') ? 'bet-amount-input invalid' : 'bet-amount-input'}
+                                        aria-invalid={err && err.includes('Not enough') ? 'true' : 'false'}
+                                        disabled={status === BET_STATUS.SUBMITTING}
                                     />
                                 </div>
                             </div>
                         )}
 
+                        {status === BET_STATUS.ERROR && error && (
+                            <p className="form-error">{error}</p>
+                        )}
+
+                        {err && <p className="form-error">{err}</p>}
+
                         <div className="modal-actions">
-                            <button type="button" className="secondary-button" onClick={onClose} disabled={submitting}>
+                            <button type="button" className="secondary-button" onClick={onClose} disabled={status === BET_STATUS.SUBMITTING}>
                                 Cancel
                             </button>
-                            <button type="button" className="primary-button" onClick={handleSubmit} disabled={submitting || !canPlaceBet}>
-                                {submitting ? 'Placing...' : 'Place bet'}
+                            <button type="button" className="primary-button" onClick={handleSubmit} disabled={status === BET_STATUS.SUBMITTING}>
+                                {(status === BET_STATUS.SUBMITTING) ? 'Placing...' : 'Place bet'}
                             </button>
                         </div>
                     </>

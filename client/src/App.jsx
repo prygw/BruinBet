@@ -116,6 +116,7 @@ function App() {
       {marketBetPlacedOn && (
         <PlaceBetModal
           market={marketBetPlacedOn}
+          balance={session?.balance ?? 0}
           onClose={() => setMarketBetPlacedOn(null)}
         />
       )}
