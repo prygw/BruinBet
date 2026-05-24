@@ -1,3 +1,5 @@
+#the way this works basically is :
+# ssh to the server (where an nginx reverse proxy routes traffic that hits our server through [our domain name, provisionally it is bruinbet.prygw.me] to the running node app) -> runs scripts/deploy.sh (starts the node processes)
 - name: Deploy via SSH
     uses: appleboy/ssh-action@v1.0.3
     with:
