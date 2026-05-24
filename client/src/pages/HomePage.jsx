@@ -33,7 +33,6 @@ function HomePage({ onAction, onShowAuth, searchTerm, session }) {
     <MarketPreviewGrid
       actionLabel={session ? 'Place bet' : 'Sign up to bet'}
       onButtonClick={(market) => {
-        console.log('2. HomePage onButtonClick fired, onAction is:', onAction)
         onAction(market)
       }}
       searchTerm={searchTerm}

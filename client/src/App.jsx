@@ -48,17 +48,13 @@ function App() {
   }
 
   function handlePlaceBet(market) {
-    console.log('3. handlePlaceBet called, session is:', session, 'market is:', market)
     if (!session) {
-      console.log('3a. no session, redirecting to auth')
       setAuthMode('register')
       setAuthPrompt('Create an account or log in to place a bet.')
       setActiveView('auth')
       return
     }
-    console.log('3b. setting marketBetPlacedOn')
     setMarketBetPlacedOn(market)
-    setTimeout(() => console.log('3c. after setState, marketBetPlacedOn was set with:', market), 0)
   }
 
   return (
@@ -112,7 +108,6 @@ function App() {
           <PortfolioPage session={session} />
         )}
       </main>
-      {console.log('4. render check, marketBetPlacedOn is:', marketBetPlacedOn)}
       {marketBetPlacedOn && (
         <PlaceBetModal
           market={marketBetPlacedOn}

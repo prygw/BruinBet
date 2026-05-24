@@ -59,7 +59,6 @@ function MarketPreviewGrid({ actionLabel, onButtonClick, searchTerm, previewLimi
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              console.log('1. grid button clicked, onButtonClick is:', onButtonClick)
               onButtonClick(market)
             }}
           >
