@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import BASE_URL from '../api'
 import { formatTimeRemaining } from '../utils/formatTime'
 
-function MarketPreviewGrid({ actionLabel, onPlaceBet, searchTerm, previewLimit, title = 'Campus market preview' }) {
+function MarketPreviewGrid({ actionLabel, onButtonClick, searchTerm, previewLimit, title = 'Campus market preview' }) {
   const [markets, setMarkets] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -54,13 +54,17 @@ function MarketPreviewGrid({ actionLabel, onPlaceBet, searchTerm, previewLimit, 
                 <dd>{formatTimeRemaining(market.closes_at)}</dd>
               </div>
             </dl>
-            <button
-              className="market-action"
-              type="button"
-              onClick={() => onPlaceBet(market)}
-            >
-              {actionLabel}
-            </button>
+          <button
+            className="market-action"
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              console.log('1. grid button clicked, onButtonClick is:', onButtonClick)
+              onButtonClick(market)
+            }}
+          >
+            {actionLabel}
+          </button>
           </article>
         ))}
       </div>

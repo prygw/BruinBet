@@ -3,6 +3,7 @@ import './App.css'
 import RegistrationPage from './Registration'
 import { usePersistedSession } from './hooks/usePersistedSession'
 import Header from './components/Header'
+import PlaceBetModal from './components/PlaceBetModal'
 import HomePage from './pages/HomePage'
 import DashboardPage from './pages/DashboardPage'
 import AdminCreateMarketPage from './pages/AdminCreateMarketPage'
@@ -17,6 +18,7 @@ function App() {
   const [authMode, setAuthMode] = useState('register')
   const [authPrompt, setAuthPrompt] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
+  const [marketBetPlacedOn, setMarketBetPlacedOn] = useState(null)
 
   function handleAuthenticate({ token, user, displayName }) {
     setSession({
@@ -45,16 +47,18 @@ function App() {
     setAuthPrompt('')
   }
 
-  function handlePlaceBet() {
+  function handlePlaceBet(market) {
+    console.log('3. handlePlaceBet called, session is:', session, 'market is:', market)
     if (!session) {
+      console.log('3a. no session, redirecting to auth')
       setAuthMode('register')
       setAuthPrompt('Create an account or log in to place a bet.')
       setActiveView('auth')
       return
     }
-
-    // Temporary fallback until the Modal component is built
-    setActiveView('dashboard')
+    console.log('3b. setting marketBetPlacedOn')
+    setMarketBetPlacedOn(market)
+    setTimeout(() => console.log('3c. after setState, marketBetPlacedOn was set with:', market), 0)
   }
 
   return (
@@ -75,7 +79,7 @@ function App() {
       <main>
         {activeView === 'home' && (
           <HomePage
-            onPlaceBet={handlePlaceBet}
+            onAction={handlePlaceBet}
             onShowAuth={showAuth}
             searchTerm={searchTerm}
             session={session}
@@ -108,6 +112,19 @@ function App() {
           <PortfolioPage session={session} />
         )}
       </main>
+      {console.log('4. render check, marketBetPlacedOn is:', marketBetPlacedOn)}
+      {marketBetPlacedOn && (
+        <PlaceBetModal
+          market={marketBetPlacedOn}
+          onClose={() => setMarketBetPlacedOn(null)}
+        />
+      )}
+      {/* {marketBetPlacedOn && (
+        <div style={{ position: 'fixed', top: 50, background: 'red', padding: '20px', zIndex: 999 }}>
+          <h2>Modal is open! Market: {marketBetPlacedOn.market_name}</h2>
+          <button onClick={() => setMarketBetPlacedOn(null)}>Close</button>
+        </div>
+      )} */}
     </div>
   )
 }
