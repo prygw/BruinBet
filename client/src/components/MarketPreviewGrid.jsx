@@ -3,7 +3,7 @@ import BASE_URL from '../api'
 import StatusBar from './StatusBar'
 import { formatTimeRemaining } from '../utils/formatTime'
 
-function MarketPreviewGrid({ actionLabel, onButtonClick, marketDist = {}, searchTerm, previewLimit, title = 'Campus market preview' }) {
+function MarketPreviewGrid({ actionLabel, onButtonClick, marketBetDist = {}, searchTerm, previewLimit, title = 'Campus market preview' }) {
   const [markets, setMarkets] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -47,7 +47,7 @@ function MarketPreviewGrid({ actionLabel, onButtonClick, marketDist = {}, search
 
       <div className="market-grid">
         {filteredMarkets.map((market) => {
-          const marketStatus = marketDist[market.id]
+          const marketStatus = marketBetDist[market.id]
           return (
             <article className="market-card" key={market.id}>
               <h2>{market.market_name}</h2>
@@ -59,7 +59,7 @@ function MarketPreviewGrid({ actionLabel, onButtonClick, marketDist = {}, search
               </dl>
               {marketStatus ? (
                 <StatusBar
-                  options={marketStatus.options}
+                  options={marketStatus.options || market.options}
                   chosenOptionId={marketStatus.chosenOptionId}
                   title="Your bet distribution"
                   showLegend={false}

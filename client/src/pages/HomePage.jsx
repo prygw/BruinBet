@@ -1,6 +1,6 @@
 import MarketPreviewGrid from '../components/MarketPreviewGrid'
 
-function HomePage({ onAction, onShowAuth, searchTerm, session, marketDist }) {
+function HomePage({ onAction, onShowAuth, searchTerm, session, marketBetDist }) {
   return (
     <section className="landing-layout" aria-labelledby="landing-title">
       <div className="landing-hero">
@@ -35,7 +35,7 @@ function HomePage({ onAction, onShowAuth, searchTerm, session, marketDist }) {
       onButtonClick={(market) => {
         onAction(market)
       }}
-      marketDist={marketDist}
+      marketBetDist={marketBetDist}
       searchTerm={searchTerm}
       previewLimit={session ? null : 3}
     />

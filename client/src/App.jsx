@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
+import BASE_URL from './api'
 import RegistrationPage from './Registration'
 import { usePersistedSession } from './hooks/usePersistedSession'
 import Header from './components/Header'
@@ -19,7 +20,7 @@ function App() {
   const [authPrompt, setAuthPrompt] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [marketBetPlacedOn, setMarketBetPlacedOn] = useState(null)
-  const [marketDist, setMarketDist] = useState({})
+  const [marketBetDist, setMarketBetDist] = useState({})
 
   function handleAuthenticate({ token, user, displayName }) {
     setSession({
@@ -59,11 +60,49 @@ function App() {
   }
 
   function handleBetSuccess(marketId, market, chosenOptionId) {
-    setMarketDist((current) => ({
+    setMarketBetDist((current) => ({
       ...current,
       [marketId]: { options: market.options, chosenOptionId },
     }))
   }
+
+  useEffect(() => {
+    if (!session?.token) {
+      setMarketBetDist({})
+      return
+    }
+
+    async function fetchVotedMarkets() {
+      try {
+        const res = await fetch(`${BASE_URL}/api/portfolio`, {
+          headers: {
+            Authorization: `Bearer ${session.token}`,
+          },
+        })
+
+        if (!res.ok) {
+          throw new Error('Unable to load votes')
+        }
+
+        const data = await res.json()
+        const votes = {}
+
+        data.positions.forEach((position) => {
+          if (!votes[position.id_market]) {
+            votes[position.id_market] = {
+              chosenOptionId: position.id_option,
+            }
+          }
+        })
+
+        setMarketBetDist(votes)
+      } catch (err) {
+        setMarketBetDist({})
+      }
+    }
+
+    fetchVotedMarkets()
+  }, [session?.token])
 
   return (
     <div className="app-shell">
@@ -87,7 +126,7 @@ function App() {
             onShowAuth={showAuth}
             searchTerm={searchTerm}
             session={session}
-            marketDist={marketDist}
+            marketBetDist={marketBetDist}
           />
         )}
 
