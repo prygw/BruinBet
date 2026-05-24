@@ -28,6 +28,18 @@ export function usePlaceBet() {
                 return
             }
 
+            if (!Number.isInteger(marketId) || !Number.isInteger(optionId)) {
+                setError('Could not place bet: invalid market or option selected.')
+                setStatus(BET_STATUS.ERROR)
+                return
+            }
+
+            if (!Number.isInteger(amount) || amount <= 0) {
+                setError('Could not place bet: amount must be a whole number greater than zero.')
+                setStatus(BET_STATUS.ERROR)
+                return
+            }
+
             const res = await fetch(`${BASE_URL}/api/bets`, {
                 method: 'POST',
                 headers: {
@@ -84,9 +96,11 @@ export function usePlaceBet() {
 
             setResult(finalResult)
             setStatus(BET_STATUS.SUCCESS)
+            return finalResult
         } catch (err) {
             setError(err.message || 'Could not place bet')
             setStatus(BET_STATUS.ERROR)
+            return null
         }
     }
 

@@ -19,6 +19,7 @@ function App() {
   const [authPrompt, setAuthPrompt] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [marketBetPlacedOn, setMarketBetPlacedOn] = useState(null)
+  const [marketDist, setMarketDist] = useState({})
 
   function handleAuthenticate({ token, user, displayName }) {
     setSession({
@@ -57,6 +58,13 @@ function App() {
     setMarketBetPlacedOn(market)
   }
 
+  function handleBetSuccess(marketId, market, chosenOptionId) {
+    setMarketDist((current) => ({
+      ...current,
+      [marketId]: { options: market.options, chosenOptionId },
+    }))
+  }
+
   return (
     <div className="app-shell">
       <Header
@@ -79,6 +87,7 @@ function App() {
             onShowAuth={showAuth}
             searchTerm={searchTerm}
             session={session}
+            marketDist={marketDist}
           />
         )}
 
@@ -113,6 +122,7 @@ function App() {
           market={marketBetPlacedOn}
           balance={session?.balance ?? 0}
           onClose={() => setMarketBetPlacedOn(null)}
+          onBetSuccess={handleBetSuccess}
         />
       )}
       {/* {marketBetPlacedOn && (

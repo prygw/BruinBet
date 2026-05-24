@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { usePlaceBet, BET_STATUS } from '../hooks/usePlaceBet'
+import StatusBar from './StatusBar'
 
-function PlaceBetModal({ market, balance, onClose }) {
+function PlaceBetModal({ market, balance, onClose, onBetSuccess }) {
     const [choice, setChoice] = useState(null)
     const [amount, setAmount] = useState('')
     const [err, setErr] = useState('')
@@ -16,7 +17,9 @@ function PlaceBetModal({ market, balance, onClose }) {
     const canPlaceBet = haveOptions && choice && Number(amount) >= 1
 
     async function handleSubmit() {
-        const num = parseFloat(amount)
+        const num = Number(amount)
+        const selectedOption = opts.find((o) => o.label === choice)
+        const optionId = selectedOption?.id
 
         if (!haveOptions) {
             setErr("This market doesn't have two options yet.")
@@ -28,8 +31,13 @@ function PlaceBetModal({ market, balance, onClose }) {
             return
         }
 
-        if (!amount || Number.isNaN(num) || num < 1) {
-            setErr('Type a number >= 1')
+        if (!selectedOption || !Number.isInteger(optionId)) {
+            setErr('Choose a valid option before placing your bet.')
+            return
+        }
+
+        if (!amount || Number.isNaN(num) || !Number.isInteger(num) || num < 1) {
+            setErr('Type a whole number greater than or equal to 1.')
             return
         }
 
@@ -39,7 +47,10 @@ function PlaceBetModal({ market, balance, onClose }) {
         }
 
         setErr('')
-        await submit({ marketId: market.id, optionId: (opts.find((o) => o.label === choice) || {}).id, amount: num })
+        const betResult = await submit({ marketId: Number(market.id), optionId, amount: num })
+        if (betResult && betResult.market && onBetSuccess) {
+            onBetSuccess(market.id, betResult.market, betResult.chosenOptionId)
+        }
     }
 
     return (
@@ -53,105 +64,18 @@ function PlaceBetModal({ market, balance, onClose }) {
                 {status === BET_STATUS.SUCCESS ? (
                     (() => {
                         const resultOptions = (result && result.market && result.market.options) || opts
-                        const first = resultOptions[0]
-                        const second = resultOptions[1]
                         const chosenId = result && result.chosenOptionId
-
-                        // add some point should standardize these for all files ngl
-                        const FIRST_COLOR = '#ffd100'
-                        const SECOND_COLOR = '#2774ae'
 
                         return (
                             <div style={{ display: 'grid', gap: 18, paddingTop: 4 }}>
                                 <p style={{ margin: 0, color: '#cbd5e1', fontSize: 15 }}>
-                                    New balance: <strong style={{ color: '#fff', fontSize: 20 }}>{result.balance}</strong>
+                                    New balance: <strong style={{ color: '#ffffff', fontSize: 20 }}>{result.balance}</strong>
                                 </p>
 
-                                <div>
-                                    <p style={{ margin: '0 0 8px', textTransform: 'uppercase', fontSize: 11, color: '#94a3b8', fontWeight: 800, letterSpacing: 0.5 }}>
-                                        Market distribution
-                                    </p>
-
-                                    {/* split bar two segments sized to their % share; chosen side gets outlined. */}
-                                    <div
-                                        role="img"
-                                        aria-label={`${first.label} ${first.percent}%, ${second.label} ${second.percent}%`}
-                                        style={{
-                                            display: 'flex',
-                                            height: 42,
-                                            borderRadius: 10,
-                                            overflow: 'hidden',
-                                            border: '1px solid rgba(255,255,255,0.1)',
-                                        }}
-                                    >
-                                        <div
-                                            style={{
-                                                width: `${first.percent}%`,
-                                                background: FIRST_COLOR,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                color: '#111827',
-                                                fontWeight: 800,
-                                                fontSize: 13,
-                                                outline: first.id === chosenId ? '3px solid #fff' : 'none',
-                                                outlineOffset: -3,
-                                                transition: 'width 420ms ease',
-                                                minWidth: first.percent > 0 ? 44 : 0,
-                                            }}
-                                        >
-                                            {first.percent > 8 && `${first.label} ${first.percent}%`}
-                                        </div>
-                                        <div
-                                            style={{
-                                                width: `${second.percent}%`,
-                                                background: SECOND_COLOR,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                color: '#fff',
-                                                fontWeight: 800,
-                                                fontSize: 13,
-                                                outline: second.id === chosenId ? '3px solid #fff' : 'none',
-                                                outlineOffset: -3,
-                                                transition: 'width 420ms ease',
-                                                minWidth: second.percent > 0 ? 44 : 0,
-                                            }}
-                                        >
-                                            {second.percent > 8 && `${second.label} ${second.percent}%`}
-                                        </div>
-                                    </div>
-
-                                    {/* legend underneath -- in case a segment is too narrow to show its inline label */}
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#cbd5e1', marginTop: 10 }}>
-                                        <span>
-                                            <span style={{ display: 'inline-block', width: 10, height: 10, background: FIRST_COLOR, borderRadius: 2, marginRight: 6, verticalAlign: 'middle' }} />
-                                            {first.label} — {first.percent}%
-                                            {first.id === chosenId && <span style={{ marginLeft: 6, color: '#fff', fontWeight: 700 }}>(your bet)</span>}
-                                        </span>
-                                        <span>
-                                            <span style={{ display: 'inline-block', width: 10, height: 10, background: SECOND_COLOR, borderRadius: 2, marginRight: 6, verticalAlign: 'middle' }} />
-                                            {second.label} — {second.percent}%
-                                            {second.id === chosenId && <span style={{ marginLeft: 6, color: '#fff', fontWeight: 700 }}>(your bet)</span>}
-                                        </span>
-                                    </div>
-                                </div>
+                                <StatusBar options={resultOptions} chosenOptionId={chosenId} />
 
                                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                    <button
-                                        type="button"
-                                        onClick={onClose}
-                                        style={{
-                                            minHeight: 46,
-                                            padding: '0 22px',
-                                            fontWeight: 800,
-                                            background: '#ffd100',
-                                            color: '#111827',
-                                            borderRadius: 8,
-                                            border: 0,
-                                            cursor: 'pointer',
-                                        }}
-                                    >
+                                    <button type="button" onClick={onClose} className="primary-button">
                                         Done
                                     </button>
                                 </div>
