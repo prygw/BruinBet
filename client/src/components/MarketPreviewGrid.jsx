@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import BASE_URL from '../api'
+import StatusBar from './StatusBar'
 import { formatTimeRemaining } from '../utils/formatTime'
 
-function MarketPreviewGrid({ actionLabel, onPlaceBet, searchTerm, previewLimit, title = 'Campus market preview' }) {
+function MarketPreviewGrid({ actionLabel, onButtonClick, marketBetDist = {}, searchTerm, previewLimit, title = 'Campus market preview' }) {
   const [markets, setMarkets] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -45,24 +46,39 @@ function MarketPreviewGrid({ actionLabel, onPlaceBet, searchTerm, previewLimit, 
       </div>
 
       <div className="market-grid">
-        {filteredMarkets.map((market) => (
-          <article className="market-card" key={market.id}>
-            <h2>{market.market_name}</h2>
-            <dl>
-              <div>
-                <dt>Closes</dt>
-                <dd>{formatTimeRemaining(market.closes_at)}</dd>
-              </div>
-            </dl>
-            <button
-              className="market-action"
-              type="button"
-              onClick={() => onPlaceBet(market)}
-            >
-              {actionLabel}
-            </button>
-          </article>
-        ))}
+        {filteredMarkets.map((market) => {
+          const marketStatus = marketBetDist[market.id]
+          return (
+            <article className="market-card" key={market.id}>
+              <h2>{market.market_name}</h2>
+              <dl>
+                <div>
+                  <dt>Closes</dt>
+                  <dd>{formatTimeRemaining(market.closes_at)}</dd>
+                </div>
+              </dl>
+              {marketStatus ? (
+                <StatusBar
+                  options={marketStatus.options || market.options}
+                  chosenOptionId={marketStatus.chosenOptionId}
+                  title="Your bet distribution"
+                  showLegend={false}
+                />
+              ) : (
+                <button
+                  className="market-action"
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onButtonClick(market)
+                  }}
+                >
+                  {actionLabel}
+                </button>
+              )}
+            </article>
+          )
+        })}
       </div>
 
       {previewLimit && filtered.length > previewLimit && (

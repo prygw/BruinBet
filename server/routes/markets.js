@@ -84,6 +84,41 @@ router.get('/', async (req, res) => {
                     .some(value => value.toLowerCase().includes(searchTerm));
             });
 
+        // trying to get options for each market to display those too (need to do this bc market options live in different table than markets)
+        const marketIds = markets.map(m => m.id);
+        const questonMarks = marketIds.map(() => '?').join(',');
+
+        const optionRows = await db.all(
+            `SELECT
+                market_options.id,
+                market_options.market_id,
+                market_options.label,
+                COALESCE(SUM(bets.amount), 0) AS total_liquidity,
+                COUNT(bets.id) AS bet_count
+            FROM market_options
+            LEFT JOIN bets ON bets.option_id = market_options.id
+            WHERE market_options.market_id IN (${questonMarks})
+            GROUP BY market_options.id
+            ORDER BY market_options.id ASC`,
+            marketIds
+        );
+
+        const optionsForEachMarket = optionRows.reduce((acc, row) => {
+            acc[row.market_id] = acc[row.market_id] || [];
+            acc[row.market_id].push(row);
+            return acc;
+        }, {});
+
+        for (const market of markets) {
+            const options = optionsForEachMarket[market.id] || [];
+            const totalMoneyBet = options.reduce((sum, option) => sum + Number(option.total_liquidity || 0), 0);
+            market.options = options.map((option) => ({
+                ...option,
+                total_liquidity: Number(option.total_liquidity || 0),
+                percent: totalMoneyBet > 0 ? Number(((Number(option.total_liquidity || 0) / totalMoneyBet) * 100).toFixed(1)) : 0,
+            }));
+        }
+
         res.json({ markets });
     } catch (err) {
         console.error(err);
@@ -129,11 +164,18 @@ router.get('/:id', async (req, res) => {
             ORDER BY market_options.id ASC
         `, [market.id]);
 
+        const totalMoneyBet = options.reduce((sum, option) => sum + Number(option.total_liquidity || 0), 0);
+        const optionsWithPct = options.map((option) => ({
+            ...option,
+            total_liquidity: Number(option.total_liquidity || 0),
+            percent: totalMoneyBet > 0 ? Number(((Number(option.total_liquidity || 0) / totalMoneyBet) * 100).toFixed(1)) : 0,
+        }));
+
         res.json({
             market: {
                 ...market,
                 status: getMarketStatus(market),
-                options,
+                options: optionsWithPct,
             },
         });
     } catch (err) {
