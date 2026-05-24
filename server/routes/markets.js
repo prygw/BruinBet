@@ -84,6 +84,26 @@ router.get('/', async (req, res) => {
                     .some(value => value.toLowerCase().includes(searchTerm));
             });
 
+        // trying to get options for each market to display those too (need to do this bc market options live in different table than markets)
+        const marketIds = markets.map(m => m.id);
+        const questonMarks = marketIds.map(() => '?').join(',');
+
+        const optionRows = await db.all(
+            `SELECT id, market_id, label FROM market_options 
+        WHERE market_id IN (${questonMarks}) ORDER BY id ASC`,
+            marketIds
+        );
+
+        const optionsForEachMarket = optionRows.reduce((acc, row) => {
+            acc[row.market_id] = acc[row.market_id] || [];
+            acc[row.market_id].push(row);
+            return acc;
+        }, {});
+
+        for (const market of markets) {
+            market.options = optionsForEachMarket[market.id] || [];
+        }
+
         res.json({ markets });
     } catch (err) {
         console.error(err);
