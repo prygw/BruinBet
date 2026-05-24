@@ -5,6 +5,7 @@ import { usePersistedSession } from './hooks/usePersistedSession'
 import Header from './components/Header'
 import HomePage from './pages/HomePage'
 import DashboardPage from './pages/DashboardPage'
+import AdminCreateMarketPage from './pages/AdminCreateMarketPage'
 import LeaderboardPage from './pages/LeaderboardPage'
 import PortfolioPage from './pages/PortfolioPage'
 
@@ -25,6 +26,7 @@ function App() {
       email: user.email,
       balance: user.balance,
       userId: user.id,
+      is_admin: user.is_admin,
     })
     setActiveView('dashboard')
     setAuthPrompt('')
@@ -44,14 +46,15 @@ function App() {
   }
 
   function handlePlaceBet() {
-    if (session) {
-      setActiveView('dashboard')
+    if (!session) {
+      setAuthMode('register')
+      setAuthPrompt('Create an account or log in to place a bet.')
+      setActiveView('auth')
       return
     }
 
-    setAuthMode('register')
-    setAuthPrompt('Create an account or log in to place a bet.')
-    setActiveView('auth')
+    // Temporary fallback until the Modal component is built
+    setActiveView('dashboard')
   }
 
   return (
@@ -62,11 +65,13 @@ function App() {
         onSearchChange={setSearchTerm}
         onNavigateHome={() => setActiveView('home')}
         onNavigateDashboard={() => setActiveView('dashboard')}
+        onNavigateAdminCreate={() => setActiveView('admin-create')}
         onNavigateLeaderboard={() => setActiveView('leaderboard')}
         onNavigatePortfolio={() => setActiveView('portfolio')}
         onShowAuth={showAuth}
         onLogout={handleLogout}
       />
+
       <main>
         {activeView === 'home' && (
           <HomePage
@@ -74,6 +79,13 @@ function App() {
             onShowAuth={showAuth}
             searchTerm={searchTerm}
             session={session}
+          />
+        )}
+
+        {activeView === 'admin-create' && (
+          <AdminCreateMarketPage
+            session={session}
+            onCreated={() => setActiveView('home')}
           />
         )}
 
