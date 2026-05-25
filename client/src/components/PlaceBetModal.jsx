@@ -3,7 +3,7 @@ import { usePlaceBet, BET_STATUS } from '../hooks/usePlaceBet'
 import StatusBar from './StatusBar'
 
 function PlaceBetModal({ market, balance, onClose, onBetSuccess }) {
-    const [choice, setChoice] = useState(null)
+    const [selectedOptionId, setSelectedOptionId] = useState(null)
     const [amount, setAmount] = useState('')
     const [err, setErr] = useState('')
     const { submit, status, result, error } = usePlaceBet()
@@ -11,22 +11,19 @@ function PlaceBetModal({ market, balance, onClose, onBetSuccess }) {
     if (!market) return null
 
     const opts = Array.isArray(market.options) ? market.options : []
-    const a = opts[0]
-    const b = opts[1]
-    const haveOptions = Boolean(a && b)
-    const canPlaceBet = haveOptions && choice && Number(amount) >= 1
+    const haveOptions = opts.length >= 2
 
     async function handleSubmit() {
         const num = Number(amount)
-        const selectedOption = opts.find((o) => o.label === choice)
+        const selectedOption = opts.find((o) => o.id === selectedOptionId)
         const optionId = selectedOption?.id
 
         if (!haveOptions) {
-            setErr("This market doesn't have two options yet.")
+            setErr("This market doesn't have enough options yet.")
             return
         }
 
-        if (!choice) {
+        if (!selectedOptionId) {
             setErr('Pick an option first.')
             return
         }
@@ -88,23 +85,21 @@ function PlaceBetModal({ market, balance, onClose, onBetSuccess }) {
                             <p className="form-message">This market does not have enough options to place a bet right now.</p>
                         ) : (
                             <div className="bet-grid">
+                                <StatusBar options={opts} title="Current market distribution" />
+
                                 <div className="bet-field">
                                     <label>Choose an option</label>
                                     <div className="bet-side-picker">
-                                        <button
-                                            type="button"
-                                            className={choice === a?.label ? 'bet-option active' : 'bet-option'}
-                                            onClick={() => { setChoice(a?.label); if (err) setErr('') }}
-                                        >
-                                            {a?.label}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className={choice === b?.label ? 'bet-option active' : 'bet-option'}
-                                            onClick={() => { setChoice(b?.label); if (err) setErr('') }}
-                                        >
-                                            {b?.label}
-                                        </button>
+                                        {opts.map((option) => (
+                                            <button
+                                                key={option.id}
+                                                type="button"
+                                                className={selectedOptionId === option.id ? 'bet-option active' : 'bet-option'}
+                                                onClick={() => { setSelectedOptionId(option.id); if (err) setErr('') }}
+                                            >
+                                                {option.label}
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
 

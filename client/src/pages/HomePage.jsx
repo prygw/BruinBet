@@ -39,6 +39,16 @@ function HomePage({ onAction, onShowAuth, searchTerm, session, marketBetDist }) 
       searchTerm={searchTerm}
       previewLimit={session ? null : 3}
     />
+
+    <MarketPreviewGrid
+      eyebrow="Past markets"
+      title="Past market results"
+      emptyMessage="No past markets yet."
+      marketBetDist={marketBetDist}
+      searchTerm={searchTerm}
+      showActions={false}
+      statuses={['expired', 'closed']}
+    />
     </section>
   )
 }

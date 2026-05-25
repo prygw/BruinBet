@@ -1,21 +1,31 @@
 import { useState } from 'react'
 
+const DEFAULT_OPTIONS = ['Yes', 'No']
+
 export function MarketForm({ onSubmit, isSubmitting, serverError }) {
 const [name, setName] = useState('')
 const [description, setDescription] = useState('')
 const [category, setCategory] = useState('')
 const [closesAt, setClosesAt] = useState('')
+const [options, setOptions] = useState(DEFAULT_OPTIONS)
 const [errors, setErrors] = useState({})
 
 const handlePublish = async () => {
   setErrors({})
+  const optionLabels = options.map((option) => option.trim()).filter(Boolean)
+  const uniqueOptionLabels = [...new Set(optionLabels)]
+
+  if (uniqueOptionLabels.length < 2) {
+    setErrors({ options: 'Add at least two unique outcomes.' })
+    return
+  }
 
   const payload = {
     market_name: name.trim(),
     description: description.trim(),
     category: category.trim() || null,
     closes_at: closesAt ? new Date(closesAt).toISOString() : null,
-    options: ['Yes', 'No'],
+    options: uniqueOptionLabels,
   }
 
   const success = await onSubmit(payload)
@@ -24,7 +34,22 @@ const handlePublish = async () => {
     setDescription('')
     setCategory('')
     setClosesAt('')
+    setOptions(DEFAULT_OPTIONS)
   }
+}
+
+const handleOptionChange = (index, value) => {
+  setOptions((current) =>
+    current.map((option, optionIndex) => optionIndex === index ? value : option),
+  )
+}
+
+const handleAddOption = () => {
+  setOptions((current) => [...current, ''])
+}
+
+const handleRemoveOption = (index) => {
+  setOptions((current) => current.filter((_, optionIndex) => optionIndex !== index))
 }
 
 return (
@@ -87,13 +112,38 @@ return (
         </div>
     </div>
 
-    {/* possible outcomes, hard-coded for now */}
+    {/* possible outcomes */}
     <div className="form-group" style={{ marginBottom: '24px' }}>
         <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px' }}>Outcomes</label>
-        <div style={{ display: 'flex', gap: '10px' }}>
-        <span style={{ padding: '6px 16px', backgroundColor: '#e0f2fe', color: '#0369a1', borderRadius: '20px', fontWeight: '600' }}>Yes</span>
-        <span style={{ padding: '6px 16px', backgroundColor: '#fee2e2', color: '#b91c1c', borderRadius: '20px', fontWeight: '600' }}>No</span>
+        <div style={{ display: 'grid', gap: '10px' }}>
+        {options.map((option, index) => (
+            <div key={index} style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <input
+                    type="text"
+                    placeholder={`Outcome ${index + 1}`}
+                    value={option}
+                    onChange={(e) => handleOptionChange(index, e.target.value)}
+                    style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
+                />
+                <button
+                    type="button"
+                    onClick={() => handleRemoveOption(index)}
+                    disabled={options.length <= 2}
+                    style={{ padding: '10px 12px', borderRadius: '6px' }}
+                >
+                    Remove
+                </button>
+            </div>
+        ))}
+        <button
+            type="button"
+            onClick={handleAddOption}
+            style={{ width: 'fit-content', padding: '10px 14px', borderRadius: '6px', fontWeight: 'bold' }}
+        >
+            Add outcome
+        </button>
         </div>
+        {errors.options && <span className="field-error">{errors.options}</span>}
     </div>
 
     {serverError && (

@@ -10,7 +10,13 @@ UCLA's prediction market for campus events, sports, academics, and student life.
 - JWT-protected backend routes.
 - Practice balance for each user.
 - Market detail data with options, liquidity, and bet counts.
-- Admin-protected market creation route stub for upcoming work.
+- Admin-protected market creation.
+- Admin market editing for markets created by the current admin.
+- Admin market removal with full bet refunds when a listing has no outcome.
+- Authenticated bet placement with balance deduction.
+- Portfolio and leaderboard views.
+- Admin market resolution with pooled payouts.
+- Past market section for expired and resolved listings.
 
 ## Tech Stack
 
@@ -93,7 +99,13 @@ The backend runs on `http://localhost:5001` by default. Vite will print the fron
 | `POST` | `/api/auth/login` | Log in and receive a JWT |
 | `GET` | `/api/markets?status=open&search=ucla` | List markets with optional status and search filters |
 | `GET` | `/api/markets/:id` | Get one market with options and summary stats |
-| `POST` | `/api/markets` | Admin-protected market creation route, currently a stub |
+| `POST` | `/api/markets` | Admin-protected market creation |
+| `PATCH` | `/api/markets/:id` | Admin-protected edits for markets created by the current admin |
+| `DELETE` | `/api/markets/:id` | Admin-protected market removal with bet refunds |
+| `POST` | `/api/markets/:id/resolve` | Admin-protected market resolution and payout |
+| `POST` | `/api/bets` | Place an authenticated bet |
+| `GET` | `/api/portfolio` | Get the authenticated user's positions |
+| `GET` | `/api/leaderboard` | Get ranked users by balance and betting activity |
 
 ### Auth Notes
 
@@ -142,6 +154,82 @@ Market list responses include summary fields:
 - `bet_count`
 
 `GET /api/markets/:id` returns the selected market plus its options. Each option includes its own liquidity and bet count.
+
+`POST /api/markets/:id/resolve` accepts a winning option and distributes the market pool proportionally among users who bet on that option:
+
+```json
+{
+  "winning_option_id": 1
+}
+```
+
+`DELETE /api/markets/:id` removes an unresolved listing and refunds every bet on that market. Resolved markets cannot be removed this way because winners may already have been paid.
+
+## Architecture Diagrams
+
+### Client-Server Request Flow
+
+```mermaid
+flowchart LR
+  Browser[React client] -->|fetch /api/auth/*| Auth[Auth routes]
+  Browser -->|fetch /api/markets*| Markets[Market routes]
+  Browser -->|fetch /api/bets| Bets[Bet route]
+  Browser -->|fetch /api/portfolio| Portfolio[Portfolio route]
+  Browser -->|fetch /api/leaderboard| Leaderboard[Leaderboard route]
+  Auth --> DB[(SQLite)]
+  Markets --> DB
+  Bets --> DB
+  Portfolio --> DB
+  Leaderboard --> DB
+  Markets -->|admin edit / remove / resolve| Admin[checkAuth + requireAdmin]
+  Bets -->|protected action| Protected[checkAuth]
+```
+
+The React app calls Express API routes with `fetch`. Protected actions send a JWT in the `Authorization` header; admin-only market creation, edits, removal, and resolution also pass through `requireAdmin`.
+
+### Database Entity Relationship
+
+```mermaid
+erDiagram
+  users ||--o{ markets : creates
+  users ||--o{ bets : places
+  markets ||--o{ market_options : has
+  markets ||--o{ bets : receives
+  market_options ||--o{ bets : selected_by
+  market_options ||--o| markets : wins
+
+  users {
+    integer id PK
+    text email
+    text username
+    integer balance
+    integer is_admin
+  }
+  markets {
+    integer id PK
+    text market_name
+    text description
+    text category
+    text status
+    text closes_at
+    integer winning_option_id FK
+    integer created_by FK
+  }
+  market_options {
+    integer id PK
+    integer market_id FK
+    text label
+  }
+  bets {
+    integer id PK
+    integer user_id FK
+    integer market_id FK
+    integer option_id FK
+    integer amount
+  }
+```
+
+Balances are debited when users place bets. When a market is resolved, winners split the full market pot proportionally to their share of the winning option pool. When an unresolved listing is removed, all bets on that listing are refunded.
 
 ## Development Workflow
 

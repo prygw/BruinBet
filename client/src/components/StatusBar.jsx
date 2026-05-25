@@ -1,13 +1,18 @@
-import React from 'react'
-
 const DEFAULT_COLORS = ['#ffd100', '#2774ae', '#22c55e', '#f97316']
 
 function StatusBar({ options = [], chosenOptionId, title = 'Market distribution', showLegend = true }) {
-  const normalizedOptions = options.map((option, index) => ({
-    ...option,
-    percent: typeof option.percent === 'number' ? option.percent : 0,
-    color: option.color || DEFAULT_COLORS[index % DEFAULT_COLORS.length],
-  }))
+  const hasActivity = options.some((option) => Number(option.percent || 0) > 0)
+  const fallbackWidth = options.length > 0 ? 100 / options.length : 0
+  const normalizedOptions = options.map((option, index) => {
+    const percent = typeof option.percent === 'number' ? option.percent : 0
+
+    return {
+      ...option,
+      percent,
+      displayPercent: hasActivity ? percent : fallbackWidth,
+      color: option.color || DEFAULT_COLORS[index % DEFAULT_COLORS.length],
+    }
+  })
 
   const ariaLabel = normalizedOptions
     .map((opt) => `${opt.label} ${opt.percent}%`)
@@ -57,13 +62,13 @@ function StatusBar({ options = [], chosenOptionId, title = 'Market distribution'
               fontSize: 13,
               transition: 'width 420ms ease',
               minWidth: 0,
-              width: `${option.percent}%`,
+              width: `${option.displayPercent}%`,
               background: option.color,
               outline: option.id === chosenOptionId ? '3px solid #ffffff' : undefined,
               outlineOffset: option.id === chosenOptionId ? '-3px' : undefined,
             }}
           >
-            {option.percent > 8 ? `${option.label} ${option.percent}%` : ''}
+            {option.displayPercent > 8 ? `${option.label} ${option.percent}%` : ''}
           </div>
         ))}
       </div>

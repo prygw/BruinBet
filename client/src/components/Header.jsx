@@ -7,11 +7,14 @@ function Header({
   onNavigateHome,
   onNavigateDashboard,
   onNavigateAdminCreate,
+  onNavigateAdminManage,
   onNavigateLeaderboard,
   onNavigatePortfolio,
   onShowAuth,
   onLogout,
 }) {
+  const isAdmin = Boolean(session?.is_admin)
+
   return (
     <header className="site-header">
       <button
@@ -63,10 +66,15 @@ function Header({
             <button type="button" onClick={onNavigateDashboard}>
               Dashboard
             </button>
-            {session.is_admin && (
-              <button type="button" onClick={onNavigateAdminCreate}>
-                Create market
-              </button>
+            {isAdmin && (
+              <>
+                <button type="button" onClick={onNavigateAdminManage}>
+                  Manage markets
+                </button>
+                <button type="button" onClick={onNavigateAdminCreate}>
+                  Create market
+                </button>
+              </>
             )}
             <button className="logout-button" type="button" onClick={onLogout}>
               Logout

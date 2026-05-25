@@ -105,14 +105,6 @@ function RegistrationPage({ message, mode, onModeChange, onAuthenticate }) {
           </button>
         </div>
 
-        <button className="google-button" type="button" disabled={loading}>
-          Continue with Google
-        </button>
-
-        <div className="divider">
-          <span>or</span>
-        </div>
-
         {error && <p className="form-error">{error}</p>}
 
         {isRegistering && (

@@ -8,6 +8,7 @@ import PlaceBetModal from './components/PlaceBetModal'
 import HomePage from './pages/HomePage'
 import DashboardPage from './pages/DashboardPage'
 import AdminCreateMarketPage from './pages/AdminCreateMarketPage'
+import AdminManageMarketsPage from './pages/AdminManageMarketsPage'
 import LeaderboardPage from './pages/LeaderboardPage'
 import PortfolioPage from './pages/PortfolioPage'
 
@@ -113,6 +114,7 @@ function App() {
         onNavigateHome={() => setActiveView('home')}
         onNavigateDashboard={() => setActiveView('dashboard')}
         onNavigateAdminCreate={() => setActiveView('admin-create')}
+        onNavigateAdminManage={() => setActiveView('admin-manage')}
         onNavigateLeaderboard={() => setActiveView('leaderboard')}
         onNavigatePortfolio={() => setActiveView('portfolio')}
         onShowAuth={showAuth}
@@ -135,6 +137,10 @@ function App() {
             session={session}
             onCreated={() => setActiveView('home')}
           />
+        )}
+
+        {activeView === 'admin-manage' && (
+          <AdminManageMarketsPage session={session} />
         )}
 
         {activeView === 'auth' && (
