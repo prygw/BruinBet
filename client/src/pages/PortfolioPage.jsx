@@ -21,13 +21,18 @@ function formatDate(iso) {
 
 function PortfolioPage({ session }) {
   const [positions, setPositions] = useState([])
+  const [error, setError] = useState('')
 
   useEffect(() => {
     fetch(`${BASE_URL}/api/portfolio`, {
       headers: { Authorization: `Bearer ${session.token}` },
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to load portfolio')
+        return res.json()
+      })
       .then((data) => setPositions(data.positions || []))
+      .catch(() => setError('Could not load your portfolio. Please try again.'))
   }, [session.token])
 
   const totalStaked = positions.reduce((sum, p) => sum + p.amount, 0)
@@ -86,7 +91,9 @@ function PortfolioPage({ session }) {
         })}
       </div>
 
-      {positions.length === 0 && (
+      {error && <p className="form-error">{error}</p>}
+
+      {!error && positions.length === 0 && (
         <p className="empty-results">You have not placed any bets yet.</p>
       )}
     </section>

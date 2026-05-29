@@ -243,8 +243,16 @@ router.post('/', checkAuth, requireAdmin, async (req, res) => {
             return res.status(400).json({ error: "Market name is required" });
         }
 
+        if (marketName.length > 200) {
+            return res.status(400).json({ error: "Market name cannot exceed 200 characters" });
+        }
+
         if (!description) {
             return res.status(400).json({ error: "Description is required" });
+        }
+
+        if (description.length > 1000) {
+            return res.status(400).json({ error: "Description cannot exceed 1000 characters" });
         }
 
         const closesAtMs = Date.parse(closesAtRaw);
@@ -335,8 +343,16 @@ router.patch('/:id', checkAuth, requireAdmin, async (req, res) => {
             return res.status(400).json({ error: "Market name is required" });
         }
 
+        if (marketName.length > 200) {
+            return res.status(400).json({ error: "Market name cannot exceed 200 characters" });
+        }
+
         if (!description) {
             return res.status(400).json({ error: "Description is required" });
+        }
+
+        if (description.length > 1000) {
+            return res.status(400).json({ error: "Description cannot exceed 1000 characters" });
         }
 
         const closesAtMs = Date.parse(closesAtRaw);

@@ -12,7 +12,7 @@ function isOpenMarket(market) {
     return Date.parse(market.closes_at) > Date.now();
 }
 
-// POST /api/bets — place a bet on an open market
+// user placing bets
 router.post('/', checkAuth, async (req, res) => {
     let transactionStarted = false;
 
