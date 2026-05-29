@@ -1,3 +1,5 @@
+#the way this works basically is :
+# ssh to the server (where an nginx reverse proxy routes traffic that hits our server through [our domain name, bruin.bet] to the running node app) -> runs scripts/deploy.sh (starts the node processes)
 name: Deploy
 
 on:
@@ -8,6 +10,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: env
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
