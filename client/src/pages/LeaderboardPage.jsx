@@ -3,11 +3,16 @@ import BASE_URL from '../api'
 
 function LeaderboardPage() {
   const [users, setUsers] = useState([])
+  const [error, setError] = useState('')
 
   useEffect(() => {
     fetch(`${BASE_URL}/api/leaderboard`)
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to load leaderboard')
+        return res.json()
+      })
       .then((data) => setUsers(data.users || []))
+      .catch(() => setError('Could not load the leaderboard. Please try again.'))
   }, [])
 
   return (
@@ -16,6 +21,8 @@ function LeaderboardPage() {
         <p className="eyebrow">Top bettors</p>
         <h1 id="leaderboard-title">Campus leaderboard</h1>
       </div>
+
+      {error && <p className="form-error">{error}</p>}
 
       <table className="leaderboard-table">
         <thead>

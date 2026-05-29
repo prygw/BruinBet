@@ -39,8 +39,9 @@ function validateLoginReqBody(body)
 
 router.post("/register", async (req, res) => {
 	try {
-		if (validateRegisterReqBody(req.body))
-			return res.status(400).json({error: "there is an error"});
+		const registerErr = validateRegisterReqBody(req.body);
+		if (registerErr)
+			return res.status(400).json({error: registerErr});
 		const { email, password, username } = req.body;
 		if (!email || !password || !username) {
 			return res.status(400).json({ error: "Email, password, and username are required." });
@@ -73,8 +74,9 @@ router.post("/register", async (req, res) => {
 
 router.post("/login", async (req, res) => {
 	try {
-		if (validateLoginReqBody(req.body))
-			return res.status(400).json({error: "there is an error"});
+		const loginErr = validateLoginReqBody(req.body);
+		if (loginErr)
+			return res.status(400).json({error: loginErr});
 		const { email, password } = req.body;
 		if (!email || !password) {
 			return res.status(400).json({ error: "Email and password are required." });
