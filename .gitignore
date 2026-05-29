@@ -145,6 +145,6 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 
-#prod
+#prod_
 deploy.sh
 src/deploy.sh
