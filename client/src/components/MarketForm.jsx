@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 const DEFAULT_OPTIONS = ['Yes', 'No']
 
@@ -7,6 +7,7 @@ const [name, setName] = useState('')
 const [description, setDescription] = useState('')
 const [category, setCategory] = useState('')
 const [closesAt, setClosesAt] = useState('')
+const closesAtInputRef = useRef(null)
 const [options, setOptions] = useState(DEFAULT_OPTIONS)
 const [errors, setErrors] = useState({})
 
@@ -20,11 +21,12 @@ const handlePublish = async () => {
     return
   }
 
+  const closesAtValue = closesAt || closesAtInputRef.current?.value || ''
   const payload = {
     market_name: name.trim(),
     description: description.trim(),
     category: category.trim() || null,
-    closes_at: closesAt ? new Date(closesAt).toISOString() : null,
+    closes_at: closesAtValue ? new Date(closesAtValue).toISOString() : null,
     options: uniqueOptionLabels,
   }
 
@@ -94,6 +96,7 @@ return (
         <div className="form-group">
             <label>Closes at</label>
             <input
+            ref={closesAtInputRef}
             type="datetime-local"
             value={closesAt}
             onChange={(e) => setClosesAt(e.target.value)}
