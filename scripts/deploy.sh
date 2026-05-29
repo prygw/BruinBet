@@ -1,5 +1,8 @@
 #!/bin/bash
 source ~/.bashrc
+#add npm to path
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
 set -e 
 #make sure we're in the right directory
