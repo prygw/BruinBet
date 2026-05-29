@@ -10,7 +10,6 @@ const EMAIL_PATTERN = /^[^@\s]+@(?:g\.)?ucla\.edu$/i;
 const USERNAME_PATTERN = /^[A-Z0-9a-z_.-]{3,20}$/;
 const PASSWORD_MIN_LEN = 8;
 const PASSWORD_MAX_LEN = 128;
-
 function validateRegisterReqBody(body)
 {
 	const {email, password, username} = body;

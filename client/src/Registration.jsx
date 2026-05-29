@@ -119,6 +119,9 @@ function RegistrationPage({ message, mode, onModeChange, onAuthenticate }) {
               value={displayName}
               disabled={loading}
             />
+            <small className="field-hint">
+              3-20 characters. No spaces. Use letters, numbers, underscores, periods, or hyphens.
+            </small>
           </label>
         )}
 
@@ -134,6 +137,9 @@ function RegistrationPage({ message, mode, onModeChange, onAuthenticate }) {
             value={email}
             disabled={loading}
           />
+          <small className="field-hint">
+            Use your UCLA email ending in @ucla.edu or @g.ucla.edu.
+          </small>
         </label>
 
         <label>
@@ -149,6 +155,9 @@ function RegistrationPage({ message, mode, onModeChange, onAuthenticate }) {
             value={password}
             disabled={loading}
           />
+          <small className="field-hint">
+            8-128 characters.
+          </small>
         </label>
 
         <button className="primary-button large" type="submit" disabled={loading}>
