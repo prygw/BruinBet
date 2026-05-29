@@ -10,7 +10,6 @@ const EMAIL_PATTERN = /^[^@\s]+@(?:g\.)?ucla\.edu$/i;
 const USERNAME_PATTERN = /^[A-Z0-9a-z_.-]{3,20}$/;
 const PASSWORD_MIN_LEN = 8;
 const PASSWORD_MAX_LEN = 128;
-
 function validateRegisterReqBody(body)
 {
 	const {email, password, username} = body;
@@ -40,7 +39,7 @@ function validateLoginReqBody(body)
 router.post("/register", async (req, res) => {
 	try {
 		if (validateRegisterReqBody(req.body))
-			return res.status(400).json({error: "there is an error"});
+			return res.status(400).json({error: "Email, username, or password, have disallowed characters or are larger than the permitted length."});
 		const { email, password, username } = req.body;
 		if (!email || !password || !username) {
 			return res.status(400).json({ error: "Email, password, and username are required." });
@@ -74,7 +73,7 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
 	try {
 		if (validateLoginReqBody(req.body))
-			return res.status(400).json({error: "there is an error"});
+			return res.status(400).json({error: "Email, username, or password, have disallowed characters or are larger than the permitted length."});
 		const { email, password } = req.body;
 		if (!email || !password) {
 			return res.status(400).json({ error: "Email and password are required." });
