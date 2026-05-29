@@ -19,6 +19,35 @@ function getResultText(market) {
   return 'Open'
 }
 
+function getMarketLeader(options = []) {
+  if (!options.length) {
+    return null
+  }
+
+  return options.reduce((leader, option) => {
+    const percent = Number(option.percent || 0)
+    const leaderPercent = Number(leader.percent || 0)
+    return percent > leaderPercent ? option : leader
+  }, options[0])
+}
+
+function MarketStat({ label, value }) {
+  return (
+    <div className="market-stat">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  )
+}
+
+function formatOutcomeSignal(percent, pool) {
+  if (pool <= 0) {
+    return '-'
+  }
+
+  return `${percent}%`
+}
+
 function MarketPreviewGrid({
   actionLabel,
   eyebrow = 'Active markets',
@@ -113,35 +142,71 @@ function MarketPreviewGrid({
           const marketStatus = marketBetDist[market.id]
           const resultText = getResultText(market)
           const canShowAction = showActions && !marketStatus && market.status === 'open'
+          const options = Array.isArray(market.options) ? market.options : []
+          const leader = getMarketLeader(options)
+          const pool = Number(market.total_liquidity || 0)
+          const betCount = Number(market.bet_count || 0)
 
           return (
             <article className="market-card" key={market.id}>
-              <h2>{market.market_name}</h2>
-              <dl>
-                <div>
-                  <dt>Closes</dt>
-                  <dd>{formatTimeRemaining(market.closes_at)}</dd>
-                </div>
-                <div>
-                  <dt>Pool</dt>
-                  <dd>${Number(market.total_liquidity || 0).toLocaleString()}</dd>
-                </div>
-                <div>
-                  <dt>Bets</dt>
-                  <dd>{Number(market.bet_count || 0).toLocaleString()}</dd>
-                </div>
-                <div>
-                  <dt>Status</dt>
-                  <dd>{resultText}</dd>
-                </div>
-              </dl>
+              <div className="market-card-topline">
+                <span className="market-category">{market.category || 'Campus'}</span>
+                <span className={`market-state-pill state-${market.status}`}>
+                  {resultText}
+                </span>
+              </div>
+
+              <div className="market-card-main">
+                <h2>{market.market_name}</h2>
+                {market.description && (
+                  <p className="market-description">{market.description}</p>
+                )}
+              </div>
 
               <StatusBar
-                options={market.options}
+                options={options}
                 chosenOptionId={marketStatus?.chosenOptionId}
-                title={marketStatus ? 'Live distribution' : 'Live market distribution'}
+                title={marketStatus ? 'Your market distribution' : 'Live probability'}
                 showLegend={false}
               />
+
+              <div className="market-outcome-list">
+                {options.map((option) => {
+                  const percent = Number(option.percent || 0)
+                  const selected = option.id === marketStatus?.chosenOptionId
+
+                  return (
+                    <button
+                      className={selected ? 'market-outcome selected' : 'market-outcome'}
+                      disabled={!canShowAction}
+                      key={option.id || option.label}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onButtonClick(market)
+                      }}
+                    >
+                      <span>{option.label}</span>
+                      <strong>{formatOutcomeSignal(percent, pool)}</strong>
+                    </button>
+                  )
+                })}
+              </div>
+
+              <div className="market-stat-grid">
+                <MarketStat label="Pool" value={`$${pool.toLocaleString()}`} />
+                <MarketStat label="Bets" value={betCount.toLocaleString()} />
+                <MarketStat
+                  label="Closes"
+                  value={market.status === 'open' ? formatTimeRemaining(market.closes_at) : resultText}
+                />
+              </div>
+
+              {leader && (
+                <p className="market-signal">
+                  Leading: <strong>{leader.label}</strong>
+                </p>
+              )}
 
               {canShowAction && (
                 <button
@@ -154,6 +219,10 @@ function MarketPreviewGrid({
                 >
                   {actionLabel}
                 </button>
+              )}
+
+              {marketStatus && (
+                <p className="market-position-note">Position placed</p>
               )}
             </article>
           )

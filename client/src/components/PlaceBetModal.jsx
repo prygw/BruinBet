@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { usePlaceBet, BET_STATUS } from '../hooks/usePlaceBet'
 import StatusBar from './StatusBar'
 
+const QUICK_AMOUNTS = [5, 10, 25, 100]
+
 function PlaceBetModal({ market, balance, onClose, onBetSuccess }) {
     const [selectedOptionId, setSelectedOptionId] = useState(null)
     const [amount, setAmount] = useState('')
@@ -12,10 +14,16 @@ function PlaceBetModal({ market, balance, onClose, onBetSuccess }) {
 
     const opts = Array.isArray(market.options) ? market.options : []
     const haveOptions = opts.length >= 2
+    const selectedOption = opts.find((o) => o.id === selectedOptionId)
+    const numericAmount = Number(amount)
+    const marketPool = Number(market.total_liquidity || 0)
+    const selectedPool = Number(selectedOption?.total_liquidity || 0)
+    const estimatedPayout = selectedOption && numericAmount > 0
+        ? Math.floor((numericAmount / (selectedPool + numericAmount)) * (marketPool + numericAmount))
+        : null
 
     async function handleSubmit() {
         const num = Number(amount)
-        const selectedOption = opts.find((o) => o.id === selectedOptionId)
         const optionId = selectedOption?.id
 
         if (!haveOptions) {
@@ -64,18 +72,16 @@ function PlaceBetModal({ market, balance, onClose, onBetSuccess }) {
                         const chosenId = result && result.chosenOptionId
 
                         return (
-                            <div style={{ display: 'grid', gap: 18, paddingTop: 4 }}>
-                                <p style={{ margin: 0, color: '#cbd5e1', fontSize: 15 }}>
-                                    New balance: <strong style={{ color: '#ffffff', fontSize: 20 }}>{result.balance}</strong>
+                            <div className="bet-success-panel">
+                                <p>
+                                    New balance: <strong>${Number(result.balance || 0).toLocaleString()}</strong>
                                 </p>
 
                                 <StatusBar options={resultOptions} chosenOptionId={chosenId} />
 
-                                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                    <button type="button" onClick={onClose} className="primary-button">
-                                        Done
-                                    </button>
-                                </div>
+                                <button type="button" onClick={onClose} className="primary-button">
+                                    Done
+                                </button>
                             </div>
                         )
                     })()
@@ -84,11 +90,18 @@ function PlaceBetModal({ market, balance, onClose, onBetSuccess }) {
                         {!haveOptions ? (
                             <p className="form-message">This market does not have enough options to place a bet right now.</p>
                         ) : (
-                            <div className="bet-grid">
-                                <StatusBar options={opts} title="Current market distribution" />
+                            <div className="trade-panel">
+                                <div className="trade-market-summary">
+                                    <StatusBar options={opts} title="Current probability" />
+
+                                    <div className="trade-meta-row">
+                                        <span>Balance</span>
+                                        <strong>${Number(balance || 0).toLocaleString()}</strong>
+                                    </div>
+                                </div>
 
                                 <div className="bet-field">
-                                    <label>Choose an option</label>
+                                    <label>Outcome</label>
                                     <div className="bet-side-picker">
                                         {opts.map((option) => (
                                             <button
@@ -97,7 +110,8 @@ function PlaceBetModal({ market, balance, onClose, onBetSuccess }) {
                                                 className={selectedOptionId === option.id ? 'bet-option active' : 'bet-option'}
                                                 onClick={() => { setSelectedOptionId(option.id); if (err) setErr('') }}
                                             >
-                                                {option.label}
+                                                <span>{option.label}</span>
+                                                <strong>{marketPool > 0 ? `${Number(option.percent || 0)}%` : '-'}</strong>
                                             </button>
                                         ))}
                                     </div>
@@ -105,16 +119,56 @@ function PlaceBetModal({ market, balance, onClose, onBetSuccess }) {
 
                                 <div className="bet-field">
                                     <label>Amount</label>
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        step="1"
-                                        value={amount}
-                                        onChange={(e) => { setAmount(e.target.value); if (err) setErr('') }}
-                                        className={err && err.includes('Not enough') ? 'bet-amount-input invalid' : 'bet-amount-input'}
-                                        aria-invalid={err && err.includes('Not enough') ? 'true' : 'false'}
-                                        disabled={status === BET_STATUS.SUBMITTING}
-                                    />
+                                    <div className="amount-control">
+                                        <span>$</span>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            step="1"
+                                            value={amount}
+                                            onChange={(e) => { setAmount(e.target.value); if (err) setErr('') }}
+                                            className={err && err.includes('Not enough') ? 'bet-amount-input invalid' : 'bet-amount-input'}
+                                            aria-invalid={err && err.includes('Not enough') ? 'true' : 'false'}
+                                            disabled={status === BET_STATUS.SUBMITTING}
+                                        />
+                                    </div>
+                                    <div className="quick-amounts" aria-label="Quick amount choices">
+                                        {QUICK_AMOUNTS.map((quickAmount) => (
+                                            <button
+                                                key={quickAmount}
+                                                type="button"
+                                                onClick={() => {
+                                                    setAmount(String(quickAmount))
+                                                    if (err) setErr('')
+                                                }}
+                                            >
+                                                ${quickAmount}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="trade-ticket">
+                                    <div>
+                                        <span>Selected</span>
+                                        <strong>{selectedOption?.label || 'Choose outcome'}</strong>
+                                    </div>
+                                    <div>
+                                        <span>Estimated payout</span>
+                                        <strong>
+                                            {estimatedPayout
+                                                ? `$${Number(estimatedPayout).toLocaleString()}`
+                                                : '-'}
+                                        </strong>
+                                    </div>
+                                    <div>
+                                        <span>Stake</span>
+                                        <strong>
+                                            {amount && numericAmount > 0
+                                                ? `$${Number(numericAmount).toLocaleString()}`
+                                                : '-'}
+                                        </strong>
+                                    </div>
                                 </div>
                             </div>
                         )}

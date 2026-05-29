@@ -17,6 +17,9 @@ UCLA's prediction market for campus events, sports, academics, and student life.
 - Portfolio and leaderboard views.
 - Admin market resolution with pooled payouts.
 - Past market section for expired and resolved listings.
+- Prediction-market-style cards with live probability bars, outcome rows, pool/bet stats, and current leading side.
+- Bet ticket modal with quick stake buttons and estimated payout based on the current market pool.
+- Admin navigation menu that groups market-management actions without crowding the top bar.
 
 ## Tech Stack
 
@@ -165,6 +168,14 @@ Market list responses include summary fields:
 
 `DELETE /api/markets/:id` removes an unresolved listing and refunds every bet on that market. Resolved markets cannot be removed this way because winners may already have been paid.
 
+### UI Notes
+
+Market cards show the current pool distribution for each outcome. The "Leading" label means the outcome with the largest share of the current betting pool; it is not an official result.
+
+The bet modal estimates payout before submission using the same pooled payout idea as resolution: the entered stake is compared against the selected option pool, then applied to the total market pool after the new stake. This estimate is informational and can change as other users place bets.
+
+Admin-only navigation is grouped under an `Admin` hover menu to keep the top bar usable on narrower screens.
+
 ## Architecture Diagrams
 
 ### Client-Server Request Flow
@@ -247,16 +258,20 @@ Before opening a pull request, run the client lint/build checks and confirm the 
 
 ## Testing
 
-The client currently has linting:
+The client currently has linting and production build checks:
 
 ```bash
 cd client
 npm run lint
+npm run build
 ```
 
 Automated end-to-end tests are planned with Playwright before the final presentation.
 
 ## Project Notes
+
+- The UI keeps the UCLA blue/gold colorway while using prediction-market-style layout patterns for cards, outcome rows, probability bars, and the trade ticket.
+- The app background is applied at the document level so browser overscroll does not reveal a mismatched page color.
 
 - The SQLite database file is generated locally and ignored by git.
 - New users start with a practice balance of `10000`.

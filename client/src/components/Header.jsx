@@ -67,14 +67,24 @@ function Header({
               Dashboard
             </button>
             {isAdmin && (
-              <>
-                <button type="button" onClick={onNavigateAdminManage}>
+              <div className="admin-nav-menu">
+                <button
+                  aria-haspopup="true"
+                  className="admin-menu-trigger"
+                  type="button"
+                >
+                  Admin
+                  <span aria-hidden="true">⌄</span>
+                </button>
+                <div className="admin-menu-panel">
+                  <button type="button" onClick={onNavigateAdminManage}>
                   Manage markets
-                </button>
-                <button type="button" onClick={onNavigateAdminCreate}>
+                  </button>
+                  <button type="button" onClick={onNavigateAdminCreate}>
                   Create market
-                </button>
-              </>
+                  </button>
+                </div>
+              </div>
             )}
             <button className="logout-button" type="button" onClick={onLogout}>
               Logout

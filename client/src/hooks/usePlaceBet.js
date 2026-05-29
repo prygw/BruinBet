@@ -90,7 +90,7 @@ export function usePlaceBet() {
                         }
                     }
                 }
-            } catch (err2) {
+            } catch {
                 // ignore; fall back to basic data
             }
 

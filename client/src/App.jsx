@@ -39,6 +39,7 @@ function App() {
 
   function handleLogout() {
     setSession(null)
+    setMarketBetDist({})
     setAuthMode('login')
     setActiveView('home')
     setAuthPrompt('')
@@ -69,7 +70,6 @@ function App() {
 
   useEffect(() => {
     if (!session?.token) {
-      setMarketBetDist({})
       return
     }
 
@@ -97,7 +97,7 @@ function App() {
         })
 
         setMarketBetDist(votes)
-      } catch (err) {
+      } catch {
         setMarketBetDist({})
       }
     }

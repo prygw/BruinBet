@@ -19,92 +19,44 @@ function StatusBar({ options = [], chosenOptionId, title = 'Market distribution'
     .join(', ')
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gap: 12,
-      }}
-    >
-      <p
-        style={{
-          margin: 0,
-          textTransform: 'uppercase',
-          color: '#94a3b8',
-          fontSize: 11,
-          fontWeight: 800,
-          letterSpacing: '0.5px',
-        }}
-      >
-        {title}
-      </p>
+    <div className="status-module">
+      <p className="status-title">{title}</p>
 
       <div
+        className="probability-bar"
         role="img"
         aria-label={ariaLabel}
-        style={{
-          display: 'flex',
-          height: 42,
-          borderRadius: 10,
-          overflow: 'hidden',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          background: 'rgba(255, 255, 255, 0.04)',
-        }}
       >
         {normalizedOptions.map((option) => (
           <div
+            className={option.id === chosenOptionId ? 'probability-segment chosen' : 'probability-segment'}
             key={option.id || option.label}
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff',
-              fontWeight: 800,
-              fontSize: 13,
-              transition: 'width 420ms ease',
-              minWidth: 0,
               width: `${option.displayPercent}%`,
               background: option.color,
-              outline: option.id === chosenOptionId ? '3px solid #ffffff' : undefined,
-              outlineOffset: option.id === chosenOptionId ? '-3px' : undefined,
             }}
           >
-            {option.displayPercent > 8 ? `${option.label} ${option.percent}%` : ''}
+            {option.displayPercent > 8 ? `${option.label}${hasActivity ? ` ${option.percent}%` : ''}` : ''}
           </div>
         ))}
       </div>
 
       {showLegend && (
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: 'space-between',
-            gap: 12,
-            fontSize: 13,
-            color: '#cbd5e1',
-          }}
-        >
+        <div className="status-legend">
           {normalizedOptions.map((option) => (
             <span
+              className="status-legend-item"
               key={option.id || option.label}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-              }}
             >
               <span
+                className="status-swatch"
                 style={{
-                  width: 10,
-                  height: 10,
-                  borderRadius: 2,
-                  display: 'inline-block',
                   background: option.color,
                 }}
               />
-              {option.label} — {option.percent}%
+              {option.label} — {hasActivity ? `${option.percent}%` : 'No bets'}
               {option.id === chosenOptionId && (
-                <strong style={{ color: '#ffffff', fontWeight: 700 }}> (your bet)</strong>
+                <strong> (your bet)</strong>
               )}
             </span>
           ))}

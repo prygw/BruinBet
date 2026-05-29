@@ -5,7 +5,7 @@ Updated after Hao Gu dropped the class.
 Current planning date: Thursday, May 14, 2026 (Week 7).
 Presentation deadline: Friday, June 5, 2026 (Week 10).
 
-Status update: Monday, May 25, 2026 (Week 9).
+Status update: Thursday, May 28, 2026 (Week 9).
 
 ## ASAP / Behind Schedule
 
@@ -16,7 +16,8 @@ These are the highest-priority items based on the current repo state and the ori
 - ~~Frontend market search still filters local state instead of querying the server.~~ `MarketPreviewGrid` now queries `GET /api/markets?status=open&search=...`.
 - ~~Market cards still need visible option stats before a bet is placed.~~ Market cards now always show live distribution, pool size, and bet count.
 - ~~README is stale and missing architecture diagrams.~~ README now documents current setup, API behavior, admin edit/remove/resolve flows, and includes request-flow plus database diagrams.
-- **ASAP: Client lint is currently failing.** Known blockers include a conditional hook call in `AdminCreateMarketPage.jsx`, unused variables/imports, and a synchronous state update warning in `App.jsx`.
+- ~~Client lint was failing.~~ Lint blockers from the conditional admin hook call, unused catch variables, and synchronous state reset have been fixed.
+- ~~Core UI polish was still needed.~~ Market cards, probability bars, bet ticket, admin create form, admin nav, and page background behavior have been refined.
 - **BEHIND: Playwright E2E tests are not present.** Phase 4 starts Thursday, May 28, so setup should begin immediately after resolution is working.
 
 ## Planning Goals
@@ -54,6 +55,10 @@ Primary goals:
 - `PATCH /api/markets/:id` exists for admin edits to markets created by the current admin.
 - `DELETE /api/markets/:id` exists for removing unresolved listings and refunding all bets.
 - README includes setup, current API behavior, and two architecture diagrams.
+- Market feed UI now uses prediction-market-style cards with outcome rows, probability bars, pool/bet stats, and a "Leading" pool-share label.
+- Bet modal now includes quick stake buttons and an estimated payout based on current pool information.
+- Admin-only navigation actions are grouped under an `Admin` hover menu.
+- Client lint and production build currently pass.
 
 ### Needs Fixing Before More Feature Work
 
@@ -84,13 +89,13 @@ Primary goals:
 |---|---|---|
 | Display dynamic data | Mostly met by seeded market feed, portfolio, leaderboard, and live market distributions | Keep polishing resolved-market states |
 | Upload data from client to backend | ~~Met by registration/login, admin market creation, and bet placement~~ | Keep validation tight |
-| Security/authentication | Mostly met by JWT auth and admin/protected routes | **ASAP:** fix lint-blocking conditional hook and continue admin edge-case checks |
+| Security/authentication | Mostly met by JWT auth and admin/protected routes | Continue admin edge-case checks and cover protected flows in E2E tests |
 | Meaningful search through server data | ~~Met by backend search and frontend query integration~~ | Keep search behavior covered in E2E tests |
 | Three more distinct features | ~~Met by market creation, betting, portfolio, leaderboard, and resolution UI/backend~~ | Keep polishing demo flow |
 | Git understanding | Process-dependent | Use small branches, PRs, and file ownership |
 | Detailed README | ~~Met with setup instructions, current API docs, and two architecture diagrams~~ | Keep docs current as behavior changes |
-| Visually pleasing/easy navigation | Partially met | Polish core flows and resolved-market states |
-| Readable code | Partially met | **ASAP:** fix lint blockers and conditional hook issue |
+| Visually pleasing/easy navigation | Mostly met after market-card, bet-ticket, admin-menu, and background polish | Continue demo-flow polish and responsive checks |
+| Readable code | Mostly met for current client changes; lint passes | Keep PRs small and avoid inline styling regressions |
 | 2+ E2E tests | Not met | Add Playwright with at least auth/market and betting flows |
 | 2+ architecture diagrams in README | ~~Met with request-flow and database/entity diagrams~~ | Keep diagrams consistent with future changes |
 

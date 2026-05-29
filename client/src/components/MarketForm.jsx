@@ -54,25 +54,21 @@ const handleRemoveOption = (index) => {
 
 return (
     <div className="admin-form">
-    
-    {/* question */}
-        <div className="form-group" style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px' }}>
-                Market Question
+        <div className="form-group">
+            <label>
+                Market question
             </label>
             <input
                 type="text"
                 placeholder="e.g., Will it rain in LA tomorrow?"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
             />
             {errors.name && <span className="field-error">{errors.name}</span>}
         </div>
 
-    {/* description */}
-    <div className="form-group" style={{ marginBottom: '20px' }}>
-        <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px' }}>
+    <div className="form-group">
+        <label>
             Rules & Description
         </label>
         <textarea
@@ -80,56 +76,49 @@ return (
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={4}
-            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc', resize: 'vertical' }}
         />
         {errors.description && <span className="field-error">{errors.description}</span>}
     </div>
 
-    {/* category */}
-    <div className="form-row" style={{ display: 'flex', gap: '16px', marginBottom: '20px' }}>
-        <div className="form-group" style={{ flex: 1 }}>
-            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px' }}>Category (optional)</label>
+    <div className="form-row">
+        <div className="form-group">
+            <label>Category (optional)</label>
             <input 
             type="text" 
             placeholder="e.g., Politics"
             value={category} 
             onChange={(e) => setCategory(e.target.value)} 
-            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
             />
         </div>
             
-    {/* date it closes at */}
-        <div className="form-group" style={{ flex: 1 }}>
-            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px' }}>Closes at</label>
+        <div className="form-group">
+            <label>Closes at</label>
             <input
             type="datetime-local"
             value={closesAt}
             onChange={(e) => setClosesAt(e.target.value)}
             aria-invalid={Boolean(errors.closesAt)}
-            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
             />
             {errors.closesAt && <span className="field-error">{errors.closesAt}</span>}
         </div>
     </div>
 
-    {/* possible outcomes */}
-    <div className="form-group" style={{ marginBottom: '24px' }}>
-        <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px' }}>Outcomes</label>
-        <div style={{ display: 'grid', gap: '10px' }}>
+    <div className="form-group">
+        <label>Outcomes</label>
+        <div className="outcome-editor">
         {options.map((option, index) => (
-            <div key={index} style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <div className="outcome-row" key={index}>
                 <input
                     type="text"
                     placeholder={`Outcome ${index + 1}`}
                     value={option}
                     onChange={(e) => handleOptionChange(index, e.target.value)}
-                    style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
                 />
                 <button
                     type="button"
                     onClick={() => handleRemoveOption(index)}
                     disabled={options.length <= 2}
-                    style={{ padding: '10px 12px', borderRadius: '6px' }}
+                    className="secondary-button"
                 >
                     Remove
                 </button>
@@ -138,7 +127,7 @@ return (
         <button
             type="button"
             onClick={handleAddOption}
-            style={{ width: 'fit-content', padding: '10px 14px', borderRadius: '6px', fontWeight: 'bold' }}
+            className="secondary-button fit-button"
         >
             Add outcome
         </button>
@@ -147,17 +136,17 @@ return (
     </div>
 
     {serverError && (
-    <p role="alert" className="form-server-error" style={{ color: 'red', textAlign: 'center' }}>
+    <p role="alert" className="form-error">
         {serverError}
     </p>
     )}
 
-    <div className="form-actions" style={{ display: 'flex', justifyContent: 'center', marginTop: '30px' }}>
+    <div className="form-actions">
         <button 
-            type="button" // 3. Explicitly set to button, not submit
+            type="button"
             disabled={isSubmitting}
-            onClick={handlePublish} // 4. Trigger logic on click instead
-            style={{ padding: '12px 32px', fontWeight: 'bold', borderRadius: '8px' }}
+            onClick={handlePublish}
+            className="primary-button"
         >
             {isSubmitting ? 'Publishing…' : 'Publish Market'}
         </button>
