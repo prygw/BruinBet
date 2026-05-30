@@ -12,6 +12,21 @@ import AdminManageMarketsPage from './pages/AdminManageMarketsPage'
 import LeaderboardPage from './pages/LeaderboardPage'
 import PortfolioPage from './pages/PortfolioPage'
 
+function buildMarketBetDist(positions = []) {
+  const votes = {}
+
+  positions.forEach((position) => {
+    const currentVote = votes[position.id_market]
+
+    votes[position.id_market] = {
+      chosenOptionId: currentVote?.chosenOptionId ?? position.id_option,
+      positionCount: Number(currentVote?.positionCount || 0) + 1,
+    }
+  })
+
+  return votes
+}
+
 function App() {
   const [session, setSession] = usePersistedSession()
   const [activeView, setActiveView] = useState(() =>
@@ -21,6 +36,7 @@ function App() {
   const [authPrompt, setAuthPrompt] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [marketBetPlacedOn, setMarketBetPlacedOn] = useState(null)
+  const [initialBetOptionId, setInitialBetOptionId] = useState(null)
   const [marketBetDist, setMarketBetDist] = useState({})
 
   function handleAuthenticate({ token, user, displayName }) {
@@ -51,27 +67,82 @@ function App() {
     setAuthPrompt('')
   }
 
-  function handlePlaceBet(market) {
+  function handlePlaceBet(market, selectedOptionId = null) {
     if (!session) {
       setAuthMode('register')
       setAuthPrompt('Create an account or log in to place a bet.')
       setActiveView('auth')
       return
     }
+    setInitialBetOptionId(selectedOptionId)
     setMarketBetPlacedOn(market)
   }
 
-  function handleBetSuccess(marketId, market, chosenOptionId) {
-    setMarketBetDist((current) => ({
-      ...current,
-      [marketId]: { options: market.options, chosenOptionId },
-    }))
+  async function refreshMarketBetDistAfterBet(token) {
+    if (!token) {
+      return
+    }
+
+    try {
+      const res = await fetch(`${BASE_URL}/api/portfolio`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!res.ok) {
+        throw new Error('Unable to load votes')
+      }
+
+      const data = await res.json()
+      setMarketBetDist(buildMarketBetDist(data.positions || []))
+    } catch {
+      // Keep the last known local position state if a refresh fails.
+    }
+  }
+
+  function handleBetSuccess(marketId, market, chosenOptionId, nextBalance = null, nextPositionCount = null) {
+    setMarketBetDist((current) => {
+      const previousPositionCount = Number(current[marketId]?.positionCount || 0)
+      const positionCount = Number.isInteger(nextPositionCount)
+        ? nextPositionCount
+        : previousPositionCount + 1
+
+      return {
+        ...current,
+        [marketId]: {
+          options: market.options,
+          chosenOptionId,
+          positionCount,
+        },
+      }
+    })
+
+    refreshMarketBetDistAfterBet(session?.token)
+
+    if (nextBalance !== null) {
+      setSession((current) => {
+        if (!current) {
+          return current
+        }
+
+        return {
+          ...current,
+          balance: nextBalance,
+          user: current.user
+            ? { ...current.user, balance: nextBalance }
+            : current.user,
+        }
+      })
+    }
   }
 
   useEffect(() => {
     if (!session?.token) {
       return
     }
+
+    let ignore = false
 
     async function fetchVotedMarkets() {
       try {
@@ -86,23 +157,21 @@ function App() {
         }
 
         const data = await res.json()
-        const votes = {}
-
-        data.positions.forEach((position) => {
-          if (!votes[position.id_market]) {
-            votes[position.id_market] = {
-              chosenOptionId: position.id_option,
-            }
-          }
-        })
-
-        setMarketBetDist(votes)
+        if (!ignore) {
+          setMarketBetDist(buildMarketBetDist(data.positions || []))
+        }
       } catch {
-        setMarketBetDist({})
+        if (!ignore) {
+          setMarketBetDist({})
+        }
       }
     }
 
     fetchVotedMarkets()
+
+    return () => {
+      ignore = true
+    }
   }, [session?.token])
 
   return (
@@ -166,7 +235,11 @@ function App() {
         <PlaceBetModal
           market={marketBetPlacedOn}
           balance={session?.balance ?? 0}
-          onClose={() => setMarketBetPlacedOn(null)}
+          initialSelectedOptionId={initialBetOptionId}
+          onClose={() => {
+            setMarketBetPlacedOn(null)
+            setInitialBetOptionId(null)
+          }}
           onBetSuccess={handleBetSuccess}
         />
       )}

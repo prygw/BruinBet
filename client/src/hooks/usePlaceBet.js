@@ -58,6 +58,10 @@ export function usePlaceBet() {
                 throw new Error(data.error || 'Bet failed')
             }
 
+            if (typeof data.position_count === 'number') {
+                data.positionCount = data.position_count
+            }
+
             // temporarily store basic response
             let finalResult = data
 

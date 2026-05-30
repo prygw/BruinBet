@@ -49,14 +49,6 @@ router.post('/', checkAuth, async (req, res) => {
             return res.status(400).json({ error: 'Option does not belong to this market' });
         }
 
-        const existingBet = await db.get(
-            'SELECT id FROM bets WHERE user_id = ? AND market_id = ?',
-            [userId, marketId]
-        );
-        if (existingBet) {
-            return res.status(400).json({ error: 'You have already placed a bet on this market' });
-        }
-        
         const user = await db.get('SELECT balance FROM users WHERE id = ?', [userId]);
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
@@ -88,10 +80,15 @@ router.post('/', checkAuth, async (req, res) => {
         transactionStarted = false;
 
         const { balance } = await db.get('SELECT balance FROM users WHERE id = ?', [userId]);
+        const { position_count: positionCount } = await db.get(
+            'SELECT COUNT(*) AS position_count FROM bets WHERE user_id = ? AND market_id = ?',
+            [userId, marketId]
+        );
 
         res.status(201).json({
             bet: { id: result.lastID, user_id: userId, market_id: marketId, option_id: optionId, amount },
             balance,
+            position_count: positionCount,
         });
     } catch (err) {
         if (transactionStarted) {

@@ -119,6 +119,95 @@ async function getMarketWithOptions(db, marketId) {
     };
 }
 
+function toIsoTimestamp(value) {
+    if (!value) {
+        return new Date().toISOString();
+    }
+
+    const parsed = Date.parse(value);
+    if (!Number.isNaN(parsed)) {
+        return new Date(parsed).toISOString();
+    }
+
+    return new Date().toISOString();
+}
+
+async function getProbabilityHistory(db, marketId) {
+    const market = await db.get("SELECT id, created_at FROM markets WHERE id = ?", [marketId]);
+
+    if (!market) {
+        return null;
+    }
+
+    const options = await db.all(
+        "SELECT id, label FROM market_options WHERE market_id = ? ORDER BY id ASC",
+        [marketId]
+    );
+
+    const bets = await db.all(`
+        SELECT option_id, amount, created_at
+        FROM bets
+        WHERE market_id = ?
+        ORDER BY datetime(created_at) ASC, id ASC
+    `, [marketId]);
+
+    const marketCreatedAt = Date.parse(market.created_at);
+    const betTimes = bets
+        .map((bet) => Date.parse(bet.created_at))
+        .filter((timestamp) => Number.isFinite(timestamp));
+    const firstEventTime = Math.min(
+        Number.isFinite(marketCreatedAt) ? marketCreatedAt : Date.now(),
+        ...betTimes
+    );
+    const initialTime = new Date(firstEventTime - (betTimes.length ? 1000 : 0)).toISOString();
+    const totalsByOption = new Map(options.map((option) => [option.id, 0]));
+    let totalPool = 0;
+
+    const pointsByOption = new Map(
+        options.map((option) => [
+            option.id,
+            [{ timestamp: initialTime, probability: 0 }],
+        ])
+    );
+
+    for (const bet of bets) {
+        const amount = Number(bet.amount || 0);
+        const optionId = bet.option_id;
+
+        if (!totalsByOption.has(optionId) || amount <= 0) {
+            continue;
+        }
+
+        totalsByOption.set(optionId, totalsByOption.get(optionId) + amount);
+        totalPool += amount;
+
+        const timestamp = toIsoTimestamp(bet.created_at);
+        for (const option of options) {
+            const optionTotal = totalsByOption.get(option.id) || 0;
+            const probability = totalPool > 0
+                ? Number(((optionTotal / totalPool) * 100).toFixed(1))
+                : 0;
+
+            pointsByOption.get(option.id).push({ timestamp, probability });
+        }
+    }
+
+    const now = new Date().toISOString();
+    for (const option of options) {
+        const points = pointsByOption.get(option.id);
+        const lastPoint = points[points.length - 1];
+        if (lastPoint.timestamp !== now) {
+            points.push({ timestamp: now, probability: lastPoint.probability });
+        }
+    }
+
+    return options.map((option) => ({
+        option_id: option.id,
+        label: option.label,
+        points: pointsByOption.get(option.id),
+    }));
+}
+
 
 // GET /api/markets --> get markets based on status --> checkAuth option for now
 router.get('/', async (req, res) => {
@@ -207,6 +296,28 @@ router.get('/', async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Internal Server Error with getting markets" });
+    }
+});
+
+// GET /api/markets/:id/history -> step-function probability history by outcome
+router.get('/:id/history', async (req, res) => {
+    try {
+        const marketId = Number(req.params.id);
+        if (!Number.isInteger(marketId)) {
+            return res.status(400).json({ error: "A valid market id is required" });
+        }
+
+        const db = await getDb();
+        const series = await getProbabilityHistory(db, marketId);
+
+        if (!series) {
+            return res.status(404).json({ error: "Market not found" });
+        }
+
+        res.json({ series });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Internal Server Error with getting market probability history" });
     }
 });
 

@@ -47,6 +47,14 @@ function formatOutcomeSignal(percent, pool) {
   return `${percent}%`
 }
 
+function formatPositionCount(count) {
+  if (count === 1) {
+    return '1 position placed'
+  }
+
+  return `${count} positions placed`
+}
+
 function MarketPreviewGrid({
   actionLabel,
   eyebrow = 'Active markets',
@@ -141,11 +149,16 @@ function MarketPreviewGrid({
         {filteredMarkets.map((market) => {
           const marketStatus = marketBetDist[market.id]
           const resultText = getResultText(market)
-          const canShowAction = showActions && !marketStatus && market.status === 'open' && !isAdmin
+          const canShowAction = showActions && market.status === 'open' && !isAdmin
           const options = Array.isArray(market.options) ? market.options : []
           const leader = getMarketLeader(options)
           const pool = Number(market.total_liquidity || 0)
           const betCount = Number(market.bet_count || 0)
+          const userPositionCount = Number(marketStatus?.positionCount || (marketStatus ? 1 : 0))
+          const hasUserPosition = userPositionCount > 0
+          const marketActionClass = hasUserPosition
+            ? 'market-action has-position'
+            : 'market-action'
 
           return (
             <article className="market-card" key={market.id}>
@@ -175,7 +188,7 @@ function MarketPreviewGrid({
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation()
-                        onButtonClick(market)
+                        onButtonClick(market, option.id)
                       }}
                     >
                       <span>{option.label}</span>
@@ -200,21 +213,27 @@ function MarketPreviewGrid({
                 </p>
               )}
 
-              {canShowAction && (
-                <button
-                  className="market-action"
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onButtonClick(market)
-                  }}
-                >
-                  {actionLabel}
-                </button>
-              )}
-
-              {marketStatus && (
-                <p className="market-position-note">Position placed</p>
+              {canShowAction ? (
+                <div className="market-card-actions">
+                  <p
+                    aria-hidden={!hasUserPosition}
+                    className={hasUserPosition ? 'market-position-note' : 'market-position-note empty'}
+                  >
+                    {hasUserPosition ? formatPositionCount(userPositionCount) : 'No position placed'}
+                  </p>
+                  <button
+                    className={marketActionClass}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onButtonClick(market)
+                    }}
+                  >
+                    {hasUserPosition ? 'Place another bet' : actionLabel}
+                  </button>
+                </div>
+              ) : hasUserPosition && (
+                <p className="market-position-note">{formatPositionCount(userPositionCount)}</p>
               )}
             </article>
           )
