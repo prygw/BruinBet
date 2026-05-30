@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import BASE_URL from '../api'
-import StatusBar from './StatusBar'
 import { formatTimeRemaining } from '../utils/formatTime'
 
 const MARKET_REFRESH_MS = 3000
@@ -163,14 +162,6 @@ function MarketPreviewGrid({
                   <p className="market-description">{market.description}</p>
                 )}
               </div>
-
-              <StatusBar
-                options={options}
-                chosenOptionId={marketStatus?.chosenOptionId}
-                title={marketStatus ? 'Your market distribution' : 'Live probability'}
-                showLegend={false}
-              />
-
               <div className="market-outcome-list">
                 {options.map((option) => {
                   const percent = Number(option.percent || 0)
