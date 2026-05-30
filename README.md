@@ -77,6 +77,20 @@ cd server
 npm run seed
 ```
 
+Seed sample bets:
+
+```bash
+cd server
+npm run seed:bets
+```
+
+By default this seeds bets under `admin@ucla.edu`. You can specify an email (replace `<your-email>`):
+
+```bash
+cd server
+npm run seed:bets -- --email=<your-email>@ucla.edu
+```
+
 Start the backend:
 
 ```bash
@@ -95,20 +109,20 @@ The backend runs on `http://localhost:5001` by default. Vite will print the fron
 
 ## Current API
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/health` | Health check |
-| `POST` | `/api/auth/register` | Register with a UCLA email |
-| `POST` | `/api/auth/login` | Log in and receive a JWT |
-| `GET` | `/api/markets?status=open&search=ucla` | List markets with optional status and search filters |
-| `GET` | `/api/markets/:id` | Get one market with options and summary stats |
-| `POST` | `/api/markets` | Admin-protected market creation |
-| `PATCH` | `/api/markets/:id` | Admin-protected edits for markets created by the current admin |
-| `DELETE` | `/api/markets/:id` | Admin-protected market removal with bet refunds |
-| `POST` | `/api/markets/:id/resolve` | Admin-protected market resolution and payout |
-| `POST` | `/api/bets` | Place an authenticated bet |
-| `GET` | `/api/portfolio` | Get the authenticated user's positions |
-| `GET` | `/api/leaderboard` | Get ranked users by balance and betting activity |
+| Method   | Endpoint                               | Description                                                    |
+| -------- | -------------------------------------- | -------------------------------------------------------------- |
+| `GET`    | `/api/health`                          | Health check                                                   |
+| `POST`   | `/api/auth/register`                   | Register with a UCLA email                                     |
+| `POST`   | `/api/auth/login`                      | Log in and receive a JWT                                       |
+| `GET`    | `/api/markets?status=open&search=ucla` | List markets with optional status and search filters           |
+| `GET`    | `/api/markets/:id`                     | Get one market with options and summary stats                  |
+| `POST`   | `/api/markets`                         | Admin-protected market creation                                |
+| `PATCH`  | `/api/markets/:id`                     | Admin-protected edits for markets created by the current admin |
+| `DELETE` | `/api/markets/:id`                     | Admin-protected market removal with bet refunds                |
+| `POST`   | `/api/markets/:id/resolve`             | Admin-protected market resolution and payout                   |
+| `POST`   | `/api/bets`                            | Place an authenticated bet                                     |
+| `GET`    | `/api/portfolio`                       | Get the authenticated user's positions                         |
+| `GET`    | `/api/leaderboard`                     | Get ranked users by balance and betting activity               |
 
 ### Auth Notes
 
@@ -248,6 +262,7 @@ Useful commands:
 
 ```bash
 cd server && npm run seed
+cd server && npm run seed:bets
 cd server && npm run dev
 cd client && npm run dev
 cd client && npm run lint
