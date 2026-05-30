@@ -52,6 +52,7 @@ function MarketPreviewGrid({
   actionLabel,
   eyebrow = 'Active markets',
   emptyMessage = 'No open markets right now.',
+  isAdmin = false,
   marketBetDist = {},
   onButtonClick,
   previewLimit,
@@ -141,7 +142,7 @@ function MarketPreviewGrid({
         {filteredMarkets.map((market) => {
           const marketStatus = marketBetDist[market.id]
           const resultText = getResultText(market)
-          const canShowAction = showActions && !marketStatus && market.status === 'open'
+          const canShowAction = showActions && !marketStatus && market.status === 'open' && !isAdmin
           const options = Array.isArray(market.options) ? market.options : []
           const leader = getMarketLeader(options)
           const pool = Number(market.total_liquidity || 0)

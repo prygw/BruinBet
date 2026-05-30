@@ -162,7 +162,7 @@ function App() {
           <PortfolioPage session={session} />
         )}
       </main>
-      {marketBetPlacedOn && (
+      {!session.is_admin && marketBetPlacedOn && (
         <PlaceBetModal
           market={marketBetPlacedOn}
           balance={session?.balance ?? 0}
