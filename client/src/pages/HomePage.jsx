@@ -49,6 +49,7 @@ function HomePage({ onAction, onShowAuth, searchTerm, session, marketBetDist }) 
       searchTerm={searchTerm}
       showActions={false}
       statuses={['expired', 'closed']}
+      previewLimit={session ? null : 3}
     />
     </section>
   )
