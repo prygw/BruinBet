@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import BASE_URL from '../api'
-import StatusBar from '../components/StatusBar'
+// import StatusBar from '../components/StatusBar'
 
 const MARKET_STATUSES = ['open', 'expired', 'closed']
 
@@ -336,7 +336,7 @@ function AdminManageMarketsPage({ session }) {
                 )}
               </div>
 
-              <StatusBar options={marketOptions} title="Current distribution" />
+              {/* <StatusBar options={marketOptions} title="Current distribution" /> */}
 
               {!locked && (
                 <button

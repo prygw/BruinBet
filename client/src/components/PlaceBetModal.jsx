@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { usePlaceBet, BET_STATUS } from '../hooks/usePlaceBet'
-import StatusBar from './StatusBar'
+// import StatusBar from './StatusBar'
 
 const QUICK_AMOUNTS = [5, 10, 25, 100]
 
@@ -77,7 +77,7 @@ function PlaceBetModal({ market, balance, onClose, onBetSuccess }) {
                                     New balance: <strong>${Number(result.balance || 0).toLocaleString()}</strong>
                                 </p>
 
-                                <StatusBar options={resultOptions} chosenOptionId={chosenId} />
+                                {/* <StatusBar options={resultOptions} chosenOptionId={chosenId} /> */}
 
                                 <button type="button" onClick={onClose} className="primary-button">
                                     Done
@@ -92,7 +92,7 @@ function PlaceBetModal({ market, balance, onClose, onBetSuccess }) {
                         ) : (
                             <div className="trade-panel">
                                 <div className="trade-market-summary">
-                                    <StatusBar options={opts} title="Current probability" />
+                                    {/* <StatusBar options={opts} title="Current probability" /> */}
 
                                     <div className="trade-meta-row">
                                         <span>Balance</span>

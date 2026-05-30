@@ -32,6 +32,7 @@ function HomePage({ onAction, onShowAuth, searchTerm, session, marketBetDist }) 
 
     <MarketPreviewGrid
       actionLabel={session ? 'Place bet' : 'Sign up to bet'}
+      isAdmin={session?.is_admin}
       onButtonClick={(market) => {
         onAction(market)
       }}
@@ -48,6 +49,7 @@ function HomePage({ onAction, onShowAuth, searchTerm, session, marketBetDist }) 
       searchTerm={searchTerm}
       showActions={false}
       statuses={['expired', 'closed']}
+      previewLimit={session ? null : 3}
     />
     </section>
   )

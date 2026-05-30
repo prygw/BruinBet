@@ -109,7 +109,7 @@ function RegistrationPage({ message, mode, onModeChange, onAuthenticate }) {
 
         {isRegistering && (
           <label>
-            Display name
+            Username
             <input
               autoComplete="name"
               name="displayName"

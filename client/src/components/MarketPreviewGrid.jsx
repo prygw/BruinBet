@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import BASE_URL from '../api'
-import StatusBar from './StatusBar'
 import { formatTimeRemaining } from '../utils/formatTime'
 
 const MARKET_REFRESH_MS = 3000
@@ -52,6 +51,7 @@ function MarketPreviewGrid({
   actionLabel,
   eyebrow = 'Active markets',
   emptyMessage = 'No open markets right now.',
+  isAdmin = false,
   marketBetDist = {},
   onButtonClick,
   previewLimit,
@@ -141,7 +141,7 @@ function MarketPreviewGrid({
         {filteredMarkets.map((market) => {
           const marketStatus = marketBetDist[market.id]
           const resultText = getResultText(market)
-          const canShowAction = showActions && !marketStatus && market.status === 'open'
+          const canShowAction = showActions && !marketStatus && market.status === 'open' && !isAdmin
           const options = Array.isArray(market.options) ? market.options : []
           const leader = getMarketLeader(options)
           const pool = Number(market.total_liquidity || 0)
@@ -162,14 +162,6 @@ function MarketPreviewGrid({
                   <p className="market-description">{market.description}</p>
                 )}
               </div>
-
-              <StatusBar
-                options={options}
-                chosenOptionId={marketStatus?.chosenOptionId}
-                title={marketStatus ? 'Your market distribution' : 'Live probability'}
-                showLegend={false}
-              />
-
               <div className="market-outcome-list">
                 {options.map((option) => {
                   const percent = Number(option.percent || 0)
