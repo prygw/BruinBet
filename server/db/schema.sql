@@ -45,5 +45,16 @@ CREATE TABLE IF NOT EXISTS bets (
   FOREIGN KEY (option_id)   REFERENCES market_options(id)
 );
 
+CREATE TABLE IF NOT EXISTS comments (
+	id          INTEGER PRIMARY KEY AUTOINCREMENT,
+	market_id   INTEGER NOT NULL,
+	user_id     INTEGER NOT NULL,
+	body        TEXT NOT NULL,
+	created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+	FOREIGN KEY (market_id) REFERENCES markets(id) ON DELETE CASCADE,
+	FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_comments_market ON comments(market_id);
 CREATE INDEX IF NOT EXISTS idx_bets_user ON bets(user_id);
 CREATE INDEX IF NOT EXISTS idx_bets_market  ON bets(market_id);
