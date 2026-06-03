@@ -5,14 +5,7 @@ const adminCredentials = {
   password: process.env.ADMIN_PASSWORD,
 }
 
-function defineTempUser() {
-  const randomConcat = Date.now().toString().slice(-5) // unique username and email to avoid conflicts w/ existing users
-  return {
-    username: `sixseven${randomConcat}`,
-    email: `sixseven${randomConcat}@g.ucla.edu`,
-    password: 'password123',
-  }
-}
+const { defineTempUser } = require('./helper')
 
 test.describe('Authentication and access control pipeline', () => {
   test('signs up a new user through home page, logs out, then logs back in again', async ({ page }) => {
@@ -91,7 +84,7 @@ test.describe('Authentication and access control pipeline', () => {
     await page.getByLabel(/Password/i).fill(user.password)
     await page.getByRole('button', { name: /Log in/i }).click()
 
-    // strong assertion: exact welcome message again
+    // should get exact welcome message again
     await expect(page.getByText(`Welcome, ${user.username}`)).toBeVisible()
     await expect(page.getByRole('button', { name: /Logout/i })).toBeVisible()
     await expect(page.getByLabel('Primary navigation').getByRole('button', { name: /Login/i })).toHaveCount(0)
