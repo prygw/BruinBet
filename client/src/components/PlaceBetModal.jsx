@@ -22,6 +22,11 @@ function PlaceBetModal({ market, balance, initialSelectedOptionId = null, onClos
   const [err, setErr] = useState('')
   const [timeWindowKey, setTimeWindowKey] = useState('week')
   const [balanceOverride, setBalanceOverride] = useState(null)
+  //for comments
+  const [comments, setComments] = useState([])
+  const [commentBody, setCommentBody] = useState('')
+  const [commentError, setCommentError] = useState('')
+
   const { submit, reset, status, result, error } = usePlaceBet()
   const {
     series,
@@ -33,6 +38,16 @@ function PlaceBetModal({ market, balance, initialSelectedOptionId = null, onClos
   useEffect(() => {
     if (!marketId) {
       return undefined
+    }
+
+    async function loadComments() {
+      try {
+        const res = await fetch(`${BASE_URL}/api/comments/markets/${marketId}`);
+        const data = await res.json();
+        setComments(data.comments || []);
+      } catch(err) {
+        setCommentError('Failed to fetch comments.');
+      }
     }
 
     const controller = new AbortController()
@@ -57,6 +72,7 @@ function PlaceBetModal({ market, balance, initialSelectedOptionId = null, onClos
     }
 
     fetchLiveMarket()
+    loadComments()
     const intervalId = window.setInterval(fetchLiveMarket, LIVE_MARKET_REFRESH_MS)
 
     return () => {
@@ -144,6 +160,29 @@ function PlaceBetModal({ market, balance, initialSelectedOptionId = null, onClos
     setAmount('')
     setErr('')
   }
+
+  async function postAComment() {
+    const body = commentBody.trim();
+    if (!body) {
+      setCommentError('Comment cannot be empty.');
+      return;
+    }
+    try {
+      const res = await fetch(`${BASE_URL}/api/comments/markets/${marketId}`, {
+        method: 'POST', headers: {'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('bruinbet-session') ? JSON.parse(localStorage.getItem('bruinbet-session')).token : ''}`,}, body: JSON.stringify({ body }),
+      });
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Couldn\'t post comment')
+      }
+      setComments((current) => [data.comment, ...current])
+      setCommentBody('')
+      setCommentError('')
+    } catch(err) {
+      setCommentError(err.message)
+    }
+  }
+
 
   return (
     <div className="modal-backdrop" role="dialog" aria-modal="true" onClick={onClose}>
@@ -310,6 +349,22 @@ function PlaceBetModal({ market, balance, initialSelectedOptionId = null, onClos
             />
             {historyError && <p className="form-error">{historyError}</p>}
           </aside>
+          <div>
+              <div className="comments-panel">
+                <h4>Comments</h4>
+                <textarea rows={3} maxLength={500} placeholder="Add a comment!" value={commentBody} onChange={(event) => setCommentBody(event.target.value)}/>
+                <button type="button" className="secondary-button" onClick={postAComment}>Post Comment!</button>
+                {commentError && <p className="form-error">{commentError}</p>}
+                {
+                  comments.map((comment) => (
+                    <div key={comment.id} className="comment-item">
+                      <strong>{comment.username}</strong>
+                      <p>{comment.body}</p>
+                    </div>
+                  ))
+                }
+              </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1551,3 +1551,17 @@ dd {
     display: none;
   }
 }
+.comments-panel {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 10px;
+}
+
+.comment-item {
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding-top: 10px;
+}
+
+.comment-item p {
+  margin: 4px 0 0;
+}
