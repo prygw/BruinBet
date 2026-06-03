@@ -24,13 +24,13 @@ A signed-in user picks an outcome on any open market, bets an amount that they c
 - `getByRole('button', { name: /Place bet/i }).first()` — first market card action (any open market)
 - `getByRole('dialog')` — bet modal
 - `modal.getByRole('heading').first()` — market name inside modal
-- `modal.locator('.bet-option').first()` — first outcome option
-- `modal.locator('.bet-field', { hasText: /Amount/i }).locator('input')` — stake amount input
+- `modal.locator('.bet-option').first()` — first outcome option (fragile: CSS class but we don't plan on changing it)
+- `modal.locator('.bet-field', { hasText: /Amount/i }).locator('input')` — stake amount input (fragile: CSS class, but we don't plan on changing it)
 - `modal.getByRole('button', { name: /Place bet/i })` — modal submit (scoped to dialog to avoid matching card buttons behind backdrop)
 - `modal.getByRole('button', { name: /Done/i })` — success panel dismiss
 - `getByRole('button', { name: /Portfolio/i })` — nav bar portfolio entry point
 - `getByRole('article').filter({ hasText: marketName })` — portfolio position card
-- `getByRole('button', { name: /Sign up to bet/i }).first()` — logged-out market card CTA
+- `getByRole('button', { name: /Sign up to bet/i }).first()` — logged-out market card
 
 ## Oracle
 - After placing a bet: modal shows "new balance" and `$${STARTING_BALANCE - stake}`.
