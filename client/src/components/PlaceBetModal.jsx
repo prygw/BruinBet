@@ -72,13 +72,13 @@ function PlaceBetModal({ market, balance, initialSelectedOptionId = null, onClos
     }
 
     fetchLiveMarket()
+    loadComments()
     const intervalId = window.setInterval(fetchLiveMarket, LIVE_MARKET_REFRESH_MS)
 
     return () => {
       controller.abort()
       window.clearInterval(intervalId)
     }
-    loadComments();
   }, [marketId])
 
   useEffect(() => {
@@ -169,7 +169,7 @@ function PlaceBetModal({ market, balance, initialSelectedOptionId = null, onClos
     }
     try {
       const res = await fetch(`${BASE_URL}/api/comments/markets/${marketId}`, {
-        method: 'POST', headers: {'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('bruinbet_session') ? JSON.parse(localStorage.getItem('bruinbet_session')).token : ''}`,}, body: JSON.stringify({ body }),
+        method: 'POST', headers: {'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('bruinbet-session') ? JSON.parse(localStorage.getItem('bruinbet-session')).token : ''}`,}, body: JSON.stringify({ body }),
       });
       const data = await res.json()
       if (!res.ok) {
@@ -350,7 +350,7 @@ function PlaceBetModal({ market, balance, initialSelectedOptionId = null, onClos
             {historyError && <p className="form-error">{historyError}</p>}
           </aside>
           <div>
-              <div className="panel-for-comments">
+              <div className="comments-panel">
                 <h4>Comments</h4>
                 <textarea rows={3} maxLength={500} placeholder="Add a comment!" value={commentBody} onChange={(event) => setCommentBody(event.target.value)}/>
                 <button type="button" className="secondary-button" onClick={postAComment}>Post Comment!</button>
