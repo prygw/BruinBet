@@ -287,6 +287,17 @@ main {
   margin: 0 0 16px;
 }
 
+.dashboard-panel h1 {
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.dashboard-panel h1 span {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .auth-intro p,
 .dashboard-panel p {
   max-width: 640px;

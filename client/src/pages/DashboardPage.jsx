@@ -3,7 +3,10 @@ function DashboardPage({ session }) {
     <section className="dashboard-layout" aria-labelledby="dashboard-title">
       <div className="dashboard-panel">
         <p className="eyebrow">Signed in</p>
-        <h1 id="dashboard-title">Welcome, {session.displayName}</h1>
+        <h1 id="dashboard-title">
+          Welcome,<br />
+          <span>{session.displayName}</span>
+        </h1>
         <p>Your UCLA account is active.</p>
       </div>
 
