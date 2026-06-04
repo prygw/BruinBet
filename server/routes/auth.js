@@ -3,7 +3,7 @@ const INITIAL_BALANCE = 10000;
 const { getDb } = require("../db");
 const express = require("express");
 const bcrypt = require("bcrypt");
-const { genToken } = require("../middleware/auth");
+const { genToken, checkAuth } = require("../middleware/auth");
 
 const router = express.Router();
 const EMAIL_PATTERN = /^[^@\s]+@(?:g\.)?ucla\.edu$/i;
@@ -96,6 +96,17 @@ router.post("/login", async (req, res) => {
 	} catch (err) {
 		console.error("LOGIN ROUTE CRASH DETAILED ERROR:", err);
 		return res.status(500).json({ error: "Something went wrong with login. Please try again." });
+	}
+});
+
+router.get("/me", checkAuth, async (req, res) => {
+	try {
+		const db = await getDb();
+		const user = await db.get("SELECT id, email, username, balance, is_admin FROM users WHERE id = ?", [req.userId]);
+		if (!user) return res.status(404).json({ error: "User not found" });
+		res.json({ user });
+	} catch (err) {
+		res.status(500).json({ error: "Something went wrong." });
 	}
 });
 

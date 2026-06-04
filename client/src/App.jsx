@@ -138,6 +138,27 @@ function App() {
   }
 
   useEffect(() => {
+    if (activeView !== 'dashboard' || !session?.token) return
+
+    async function refreshBalance() {
+      try {
+        const res = await fetch(`${BASE_URL}/api/auth/me`, {
+          headers: { Authorization: `Bearer ${session.token}` },
+        })
+        if (!res.ok) return
+        const data = await res.json()
+        setSession((current) =>
+          current ? { ...current, balance: data.user.balance } : current,
+        )
+      } catch {
+        // ignore refresh errors
+      }
+    }
+
+    refreshBalance()
+  }, [activeView])
+
+  useEffect(() => {
     if (!session?.token) {
       return
     }
