@@ -18,7 +18,7 @@ function LeaderboardPage() {
   return (
     <section className="markets-layout" aria-labelledby="leaderboard-title">
       <div className="section-heading">
-        <p className="eyebrow">Top bettors</p>
+        <p className="eyebrow">All bettors</p>
         <h1 id="leaderboard-title">Campus leaderboard</h1>
       </div>
 
