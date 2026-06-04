@@ -982,6 +982,23 @@ dt {
   background: rgba(255, 255, 255, 0.04);
 }
 
+.leaderboard-sort-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: auto;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  text-transform: inherit;
+}
+
+.leaderboard-sort-button span {
+  color: #ffd100;
+  font-size: 12px;
+}
+
 .leaderboard-table td {
   color: #f8fafc;
   font-weight: 600;
