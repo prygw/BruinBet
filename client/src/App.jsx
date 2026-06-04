@@ -38,6 +38,9 @@ function App() {
   const [marketBetPlacedOn, setMarketBetPlacedOn] = useState(null)
   const [initialBetOptionId, setInitialBetOptionId] = useState(null)
   const [marketBetDist, setMarketBetDist] = useState({})
+  // AI-GENERATED CODE START: track personalized recommended market IDs
+  const [recommendedMarketIds, setRecommendedMarketIds] = useState([])
+  // AI-GENERATED CODE END: track personalized recommended market IDs
 
   function handleAuthenticate({ token, user, displayName }) {
     setSession({
@@ -56,6 +59,9 @@ function App() {
   function handleLogout() {
     setSession(null)
     setMarketBetDist({})
+    // AI-GENERATED CODE START: clear recommendations on logout
+    setRecommendedMarketIds([])
+    // AI-GENERATED CODE END: clear recommendations on logout
     setAuthMode('login')
     setActiveView('home')
     setAuthPrompt('')
@@ -174,6 +180,46 @@ function App() {
     }
   }, [session?.token])
 
+  // AI-GENERATED CODE START: fetch personalized recommended market IDs for signed-in users
+  useEffect(() => {
+    if (!session?.token) {
+      setRecommendedMarketIds([])
+      return
+    }
+
+    let ignore = false
+
+    async function fetchRecommendations() {
+      try {
+        const res = await fetch(`${BASE_URL}/api/recommendations`, {
+          headers: {
+            Authorization: `Bearer ${session.token}`,
+          },
+        })
+
+        if (!res.ok) {
+          throw new Error('Unable to load recommendations')
+        }
+
+        const data = await res.json()
+        if (!ignore) {
+          setRecommendedMarketIds(data.recommended_market_ids || [])
+        }
+      } catch {
+        if (!ignore) {
+          setRecommendedMarketIds([])
+        }
+      }
+    }
+
+    fetchRecommendations()
+
+    return () => {
+      ignore = true
+    }
+  }, [session?.token, marketBetDist])
+  // AI-GENERATED CODE END: fetch personalized recommended market IDs for signed-in users
+
   return (
     <div className="app-shell">
       <Header
@@ -198,6 +244,11 @@ function App() {
             searchTerm={searchTerm}
             session={session}
             marketBetDist={marketBetDist}
+            {...{
+              // AI-GENERATED CODE START: pass personalized recommendation IDs into HomePage
+              recommendedMarketIds,
+              // AI-GENERATED CODE END: pass personalized recommendation IDs into HomePage
+            }}
           />
         )}
 

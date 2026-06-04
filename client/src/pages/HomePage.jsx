@@ -1,6 +1,15 @@
 import MarketPreviewGrid from '../components/MarketPreviewGrid'
 
-function HomePage({ onAction, onShowAuth, searchTerm, session, marketBetDist }) {
+function HomePage({
+  onAction,
+  onShowAuth,
+  searchTerm,
+  session,
+  marketBetDist,
+  /* AI-GENERATED CODE START: accept personalized recommendation IDs */
+  recommendedMarketIds = [],
+  /* AI-GENERATED CODE END: accept personalized recommendation IDs */
+}) {
   return (
     <section className="landing-layout" aria-labelledby="landing-title">
       <div className="landing-hero">
@@ -37,6 +46,11 @@ function HomePage({ onAction, onShowAuth, searchTerm, session, marketBetDist }) 
         onAction(market, selectedOptionId)
       }}
       marketBetDist={marketBetDist}
+      {...{
+        // AI-GENERATED CODE START: pass recommendations to active market cards
+        recommendedMarketIds,
+        // AI-GENERATED CODE END: pass recommendations to active market cards
+      }}
       searchTerm={searchTerm}
       previewLimit={session ? null : 3}
     />

@@ -629,11 +629,29 @@ dt {
   background: rgba(255, 255, 255, 0.06);
 }
 
+/* AI-GENERATED CODE START: align status and recommendation tags */
+.market-state-tags {
+  display: inline-flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+/* AI-GENERATED CODE END: align status and recommendation tags */
+
 .market-state-pill.state-open {
   color: #86efac;
   border-color: rgba(34, 197, 94, 0.22);
   background: rgba(34, 197, 94, 0.08);
 }
+
+/* AI-GENERATED CODE START: orange recommended market tag */
+.market-state-pill.state-recommended {
+  color: #fdba74;
+  border-color: rgba(249, 115, 22, 0.34);
+  background: rgba(249, 115, 22, 0.12);
+}
+/* AI-GENERATED CODE END: orange recommended market tag */
 
 .market-state-pill.state-expired,
 .market-state-pill.state-closed {
