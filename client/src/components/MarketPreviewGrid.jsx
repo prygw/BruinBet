@@ -67,12 +67,18 @@ function MarketPreviewGrid({
   showActions = true,
   statuses = DEFAULT_STATUSES,
   title = 'Campus market preview',
+  /* AI-GENERATED CODE START: accept recommended market IDs for tag rendering */
+  recommendedMarketIds = [],
+  /* AI-GENERATED CODE END: accept recommended market IDs for tag rendering */
 }) {
   const [markets, setMarkets] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const statusesKey = statuses.join('|')
   const titleId = `markets-title-${statuses.join('-')}`
+  // AI-GENERATED CODE START: normalize recommended IDs for efficient card checks
+  const recommendedMarketIdSet = new Set(recommendedMarketIds.map((id) => Number(id)))
+  // AI-GENERATED CODE END: normalize recommended IDs for efficient card checks
 
   useEffect(() => {
     const controller = new AbortController()
@@ -159,14 +165,26 @@ function MarketPreviewGrid({
           const marketActionClass = hasUserPosition
             ? 'market-action has-position'
             : 'market-action'
+          // AI-GENERATED CODE START: determine whether this open market is recommended
+          const isRecommended = market.status === 'open' && recommendedMarketIdSet.has(Number(market.id))
+          // AI-GENERATED CODE END: determine whether this open market is recommended
 
           return (
             <article className="market-card" key={market.id}>
               <div className="market-card-topline">
                 <span className="market-category">{market.category || 'Campus'}</span>
-                <span className={`market-state-pill state-${market.status}`}>
-                  {resultText}
-                </span>
+                <div className="market-state-tags">
+                  <span className={`market-state-pill state-${market.status}`}>
+                    {resultText}
+                  </span>
+                  {isRecommended && (
+                    <>
+                      {/* AI-GENERATED CODE START: render recommended market tag */}
+                      <span className="market-state-pill state-recommended">Recommended</span>
+                      {/* AI-GENERATED CODE END: render recommended market tag */}
+                    </>
+                  )}
+                </div>
               </div>
 
               <div className="market-card-main">
