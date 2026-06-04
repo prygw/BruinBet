@@ -19,6 +19,46 @@ function formatDate(iso) {
   })
 }
 
+function PositionCard({ position }) {
+  const status = computeStatus(position)
+  const closed = status !== 'Open'
+  return (
+    <article className="portfolio-card">
+      <header className="portfolio-card-head">
+        <h2>{position.market_name}</h2>
+        <span className={`portfolio-status status-${status.toLowerCase()}`}>
+          {status}
+        </span>
+      </header>
+
+      <p className="portfolio-description">{position.description}</p>
+
+      <div className="portfolio-stats">
+        <div>
+          <span>Pick</span>
+          <strong>{position.option_label}</strong>
+        </div>
+        <div>
+          <span>Amount</span>
+          <strong>${position.amount.toLocaleString()}</strong>
+        </div>
+        <div>
+          <span>Placed</span>
+          <strong>{formatDate(position.created_at)}</strong>
+        </div>
+        <div>
+          <span>{closed ? 'Closed' : 'Closes in'}</span>
+          <strong>
+            {closed
+              ? formatDate(position.closes_at)
+              : formatTimeRemaining(position.closes_at)}
+          </strong>
+        </div>
+      </div>
+    </article>
+  )
+}
+
 function PortfolioPage({ session }) {
   const [positions, setPositions] = useState([])
   const [error, setError] = useState('')
@@ -35,60 +75,45 @@ function PortfolioPage({ session }) {
       .catch(() => setError('Could not load your portfolio. Please try again.'))
   }, [session.token])
 
-  const totalStaked = positions.reduce((sum, p) => sum + p.amount, 0)
+  const active = positions.filter((p) => computeStatus(p) === 'Open')
+  const past = positions.filter((p) => computeStatus(p) !== 'Open')
+  const activeStaked = active.reduce((sum, p) => sum + p.amount, 0)
+  const pastStaked = past.reduce((sum, p) => sum + p.amount, 0)
 
   return (
     <section className="markets-layout" aria-labelledby="portfolio-title">
-      <div className="section-heading">
+      <div className="section-heading portfolio-hero">
         <p className="eyebrow">Your positions</p>
         <h1 id="portfolio-title">Portfolio</h1>
-        <p className="portfolio-meta">
-          {positions.length} {positions.length === 1 ? 'position' : 'positions'}
-          {' · '}
-          ${totalStaked.toLocaleString()} staked
-        </p>
+        <p>Track all of your active UCLA market positions, review past results, and monitor the amounts you've staked.</p>
       </div>
 
+      <div className="section-heading">
+        <p className="eyebrow">Active Positions</p>
+        <h1>Your market bets</h1>
+        <p className="portfolio-meta">
+          {active.length} {active.length === 1 ? 'position' : 'positions'}
+          {' · '}
+          ${activeStaked.toLocaleString()} staked
+        </p>
+      </div>
       <div className="portfolio-list">
-        {positions.map((position) => {
-          const status = computeStatus(position)
-          const closed = status !== 'Open'
-          return (
-            <article className="portfolio-card" key={position.id_bet}>
-              <header className="portfolio-card-head">
-                <h2>{position.market_name}</h2>
-                <span className={`portfolio-status status-${status.toLowerCase()}`}>
-                  {status}
-                </span>
-              </header>
+        {active.map((p) => <PositionCard key={p.id_bet} position={p} />)}
+        {active.length === 0 && <p className="empty-results">No active positions.</p>}
+      </div>
 
-              <p className="portfolio-description">{position.description}</p>
-
-              <div className="portfolio-stats">
-                <div>
-                  <span>Pick</span>
-                  <strong>{position.option_label}</strong>
-                </div>
-                <div>
-                  <span>Amount</span>
-                  <strong>${position.amount.toLocaleString()}</strong>
-                </div>
-                <div>
-                  <span>Placed</span>
-                  <strong>{formatDate(position.created_at)}</strong>
-                </div>
-                <div>
-                  <span>{closed ? 'Closed' : 'Closes in'}</span>
-                  <strong>
-                    {closed
-                      ? formatDate(position.closes_at)
-                      : formatTimeRemaining(position.closes_at)}
-                  </strong>
-                </div>
-              </div>
-            </article>
-          )
-        })}
+      <div className="section-heading">
+        <p className="eyebrow">Past Positions</p>
+        <h1>Past bet results</h1>
+        <p className="portfolio-meta">
+          {past.length} {past.length === 1 ? 'position' : 'positions'}
+          {' · '}
+          ${pastStaked.toLocaleString()} staked
+        </p>
+      </div>
+      <div className="portfolio-list">
+        {past.map((p) => <PositionCard key={p.id_bet} position={p} />)}
+        {past.length === 0 && <p className="empty-results">No past positions.</p>}
       </div>
 
       {error && <p className="form-error">{error}</p>}

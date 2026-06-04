@@ -243,7 +243,8 @@ main {
   margin: 0 0 16px;
 }
 
-.landing-hero p {
+.landing-hero p,
+.portfolio-hero p {
   max-width: 680px;
   color: #cbd5e1;
 }
@@ -890,6 +891,10 @@ dt {
   margin: 8px 0 0;
   color: #cbd5e1;
   font-size: 15px;
+}
+
+.section-heading > p:not(.eyebrow) {
+  color: #cbd5e1;
 }
 
 .portfolio-list {
