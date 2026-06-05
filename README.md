@@ -13,8 +13,8 @@ UCLA's prediction market for campus events, sports, academics, and student life.
 - Admin-protected market creation.
 - Admin market editing for markets created by the current admin.
 - Admin market removal with full bet refunds when a listing has no outcome, plus cleanup for resolved listings.
-- Authenticated bet placement with balance deduction.
-- Portfolio and leaderboard views.
+- Non-admin bet placement with balance deduction.
+- Portfolio view for bettors and leaderboard view for ranked betting activity.
 - Admin market resolution with pooled payouts.
 - Past market section for expired and resolved listings.
 - Prediction-market-style cards with live probability bars, outcome rows, pool/bet stats, and current leading side.
@@ -98,10 +98,10 @@ Seed sample bets:
 
 ```bash
 cd server
-npm run seed:bets
+npm run seed:bets -- --email=<non-admin-user>@ucla.edu
 ```
 
-By default this seeds bets under `admin@ucla.edu`. You can specify an email (replace `<your-email>`):
+Use a non-admin account for seeded bets. Admin accounts can create, edit, remove, and resolve markets, but they cannot place bets or use the bettor portfolio. If needed, register a regular user through the app first, then pass that user's email:
 
 ```bash
 cd server
@@ -138,7 +138,7 @@ The backend runs on `http://localhost:5001` by default. Vite will print the fron
 | `PATCH`  | `/api/markets/:id`                     | Admin-protected edits for markets created by the current admin |
 | `DELETE` | `/api/markets/:id`                     | Admin-protected market removal with bet refunds                |
 | `POST`   | `/api/markets/:id/resolve`             | Admin-protected market resolution and payout                   |
-| `POST`   | `/api/bets`                            | Place an authenticated bet                                     |
+| `POST`   | `/api/bets`                            | Place an authenticated non-admin bet                           |
 | `GET`    | `/api/portfolio`                       | Get the authenticated user's positions                         |
 | `GET`    | `/api/leaderboard`                     | Get ranked users by balance and betting activity               |
 
@@ -208,6 +208,8 @@ The bet modal estimates payout before submission using the same pooled payout id
 
 Admin-only navigation is grouped under an `Admin` hover menu to keep the top bar usable on narrower screens.
 
+Admin accounts are for market operations only. The UI hides bettor-only actions such as bet placement and Portfolio for admins.
+
 ## Architecture Diagrams
 
 ### Client-Server Request Flow
@@ -225,10 +227,10 @@ flowchart LR
   Portfolio --> DB
   Leaderboard --> DB
   Markets -->|admin edit / remove / resolve| Admin[checkAuth + requireAdmin]
-  Bets -->|protected action| Protected[checkAuth]
+  Bets -->|bettor action| Protected[checkAuth + non-admin route check]
 ```
 
-The React app calls Express API routes with `fetch`. Protected actions send a JWT in the `Authorization` header; admin-only market creation, edits, removal, and resolution also pass through `requireAdmin`.
+The React app calls Express API routes with `fetch`. Protected actions send a JWT in the `Authorization` header; admin-only market creation, edits, removal, and resolution also pass through `requireAdmin`. Bet placement is authenticated and rejects admin accounts.
 
 ### Database Entity Relationship
 
@@ -280,7 +282,7 @@ Useful commands:
 
 ```bash
 cd server && npm run seed
-cd server && npm run seed:bets
+cd server && npm run seed:bets -- --email=<non-admin-user>@ucla.edu
 cd server && npm run dev
 cd client && npm run dev
 cd client && npm run lint
@@ -291,7 +293,7 @@ Before opening a pull request, run the client lint/build checks and confirm the 
 
 ## Testing
 
-The client currently has linting and production build checks:
+The client has linting and production build checks:
 
 ```bash
 cd client
@@ -299,7 +301,7 @@ npm run lint
 npm run build
 ```
 
-Automated end-to-end tests are planned with Playwright before the final presentation.
+Playwright end-to-end tests live in `tests/` and can be run from the repository root with `npx playwright test`.
 
 ## Project Notes
 
