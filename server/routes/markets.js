@@ -497,16 +497,7 @@ router.delete('/:id', checkAuth, requireAdmin, async (req, res) => {
 
         const isResolved = market.status === "closed" || Boolean(market.winning_option_id);
 
-        const refunds = isResolved
-            ? []
-            : await db.all(
-                `SELECT user_id, SUM(amount) AS amount
-                 FROM bets
-                 WHERE market_id = ?
-                 GROUP BY user_id
-                 ORDER BY user_id ASC`,
-                [marketId]
-            );
+        const refunds = isResolved? [] : await getRefundsByUser(marketId);
 
         await beginTransaction();
         transactionStarted = true;
