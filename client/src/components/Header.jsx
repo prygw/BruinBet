@@ -57,9 +57,11 @@ function Header({
             <button type="button" onClick={onNavigateHome}>
               Markets
             </button>
-            <button type="button" onClick={onNavigatePortfolio}>
-              Portfolio
-            </button>
+            {!isAdmin && (
+              <button type="button" onClick={onNavigatePortfolio}>
+                Portfolio
+              </button>
+            )}
             <button type="button" onClick={onNavigateLeaderboard}>
               Leaderboard
             </button>

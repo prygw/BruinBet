@@ -43,6 +43,11 @@ function App() {
   // AI-GENERATED CODE END: track personalized recommended market IDs
 
   function handleAuthenticate({ token, user, displayName }) {
+    if (user.is_admin) {
+      setMarketBetDist({})
+      setRecommendedMarketIds([])
+    }
+
     setSession({
       token,
       user,
@@ -78,6 +83,9 @@ function App() {
       setAuthMode('register')
       setAuthPrompt('Create an account or log in to place a bet.')
       setActiveView('auth')
+      return
+    }
+    if (session.is_admin) {
       return
     }
     setInitialBetOptionId(selectedOptionId)
@@ -162,10 +170,10 @@ function App() {
     }
 
     refreshBalance()
-  }, [activeView])
+  }, [activeView, session?.token, setSession])
 
   useEffect(() => {
-    if (!session?.token) {
+    if (!session?.token || session.is_admin) {
       return
     }
 
@@ -199,12 +207,11 @@ function App() {
     return () => {
       ignore = true
     }
-  }, [session?.token])
+  }, [session?.token, session?.is_admin])
 
   // AI-GENERATED CODE START: fetch personalized recommended market IDs for signed-in users
   useEffect(() => {
-    if (!session?.token) {
-      setRecommendedMarketIds([])
+    if (!session?.token || session.is_admin) {
       return
     }
 
@@ -238,7 +245,7 @@ function App() {
     return () => {
       ignore = true
     }
-  }, [session?.token, marketBetDist])
+  }, [session?.token, session?.is_admin, marketBetDist])
   // AI-GENERATED CODE END: fetch personalized recommended market IDs for signed-in users
 
   return (
@@ -299,7 +306,7 @@ function App() {
 
         {activeView === 'leaderboard' && <LeaderboardPage />}
 
-        {activeView === 'portfolio' && session && (
+        {activeView === 'portfolio' && session && !session.is_admin && (
           <PortfolioPage session={session} />
         )}
       </main>

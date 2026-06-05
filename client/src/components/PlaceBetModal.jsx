@@ -45,7 +45,7 @@ function PlaceBetModal({ market, balance, initialSelectedOptionId = null, onClos
         const res = await fetch(`${BASE_URL}/api/comments/markets/${marketId}`);
         const data = await res.json();
         setComments(data.comments || []);
-      } catch(err) {
+      } catch {
         setCommentError('Failed to fetch comments.');
       }
     }

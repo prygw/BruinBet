@@ -40,6 +40,15 @@ router.post('/', checkAuth, async (req, res) => {
             return res.status(400).json({ error: 'Bet amount must be a positive whole number' });
         }
 
+        const user = await getUserBalance(userId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        if (user.is_admin) {
+            return res.status(403).json({ error: 'Admin accounts cannot place bets' });
+        }
+
         const market = await getMarketById(marketId);
         if (!market) {
             return res.status(404).json({ error: 'Market not found' });
@@ -52,11 +61,6 @@ router.post('/', checkAuth, async (req, res) => {
         const option = await getMarketOption(optionId, marketId);
         if (!option) {
             return res.status(400).json({ error: 'Option does not belong to this market' });
-        }
-
-        const user = await getUserBalance(userId);
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
         }
 
         if (user.balance < amount) {
