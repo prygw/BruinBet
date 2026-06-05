@@ -212,88 +212,13 @@ Admin accounts are for market operations only. The UI hides bettor-only actions 
 
 ## Architecture Diagrams
 
-### Client-Server Request Flow
+Use Case Diagram:
 
-```mermaid
-flowchart LR
-  Browser[React client] -->|fetch /api/auth/*| Auth[Auth routes]
-  Browser -->|fetch /api/markets*| Markets[Market routes]
-  Browser -->|fetch /api/bets| Bets[Bet route]
-  Browser -->|fetch /api/portfolio| Portfolio[Portfolio route]
-  Browser -->|fetch /api/leaderboard| Leaderboard[Leaderboard route]
-  Browser -->|fetch /api/comments/*| Comments[Comment routes]
-  Browser -->|fetch /api/recommendations| Recommendations[Recommendation route]
-  Auth --> DB[(SQLite)]
-  Markets --> DB
-  Bets --> DB
-  Portfolio --> DB
-  Leaderboard --> DB
-  Comments --> DB
-  Recommendations --> DB
-  Markets -->|admin edit / remove / resolve| Admin[checkAuth + requireAdmin]
-  Bets -->|bettor action| Protected[checkAuth + non-admin route check]
-  Comments -->|post comment| Protected
-  Recommendations -->|personalized markets| Protected
-```
+<img width="2482" height="3207" alt="BruinBet Use Case Diagram" src="https://github.com/user-attachments/assets/95073b09-d062-4db2-ae29-d534f4dbbfe1" />
 
-The React app calls Express API routes with `fetch`. Protected actions send a JWT in the `Authorization` header; admin-only market creation, edits, removal, and resolution also pass through `requireAdmin`. Bet placement is authenticated and rejects admin accounts.
+Sequence Diagram:
 
-### Database Entity Relationship
 
-```mermaid
-erDiagram
-  users ||--o{ markets : creates
-  users ||--o{ bets : places
-  users ||--o{ comments : writes
-  markets ||--o{ market_options : has
-  markets ||--o{ bets : receives
-  markets ||--o{ comments : receives
-  market_options ||--o{ bets : selected_by
-  market_options ||--o| markets : wins
-
-  users {
-    integer id PK
-    text email
-    text password_hash
-    text username
-    integer balance
-    integer is_admin
-    text created_at
-  }
-  markets {
-    integer id PK
-    text market_name
-    text description
-    text category
-    text status
-    text created_at
-    text closes_at
-    integer winning_option_id FK
-    integer created_by FK
-  }
-  market_options {
-    integer id PK
-    integer market_id FK
-    text label
-  }
-  bets {
-    integer id PK
-    integer user_id FK
-    integer market_id FK
-    integer option_id FK
-    integer amount
-    text created_at
-  }
-  comments {
-    integer id PK
-    integer market_id FK
-    integer user_id FK
-    text body
-    text created_at
-  }
-```
-
-Balances are debited when users place bets. When a market is resolved, winners split the full market pot proportionally to their share of the winning option pool. When an unresolved listing is removed, all bets on that listing are refunded; when a resolved listing is removed, prior payouts are left unchanged.
 
 ## Development Workflow
 
