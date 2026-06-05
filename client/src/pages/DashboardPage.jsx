@@ -1,4 +1,6 @@
 function DashboardPage({ session }) {
+  const accessLabel = session.is_admin ? 'Admin controls enabled' : 'Betting enabled'
+
   return (
     <section className="dashboard-layout" aria-labelledby="dashboard-title">
       <div className="dashboard-panel">
@@ -12,11 +14,13 @@ function DashboardPage({ session }) {
 
       <div className="account-summary" aria-label="Account summary">
         <SummaryItem label="Email" value={session.email} />
-        <SummaryItem
-          label="Balance"
-          value={`$${session.balance.toLocaleString()}`}
-        />
-        <SummaryItem label="Access" value="Betting enabled" />
+        {!session.is_admin && (
+          <SummaryItem
+            label="Balance"
+            value={`$${session.balance.toLocaleString()}`}
+          />
+        )}
+        <SummaryItem label="Access" value={accessLabel} />
       </div>
     </section>
   )

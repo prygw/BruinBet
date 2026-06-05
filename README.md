@@ -12,7 +12,7 @@ UCLA's prediction market for campus events, sports, academics, and student life.
 - Market detail data with options, liquidity, and bet counts.
 - Admin-protected market creation.
 - Admin market editing for markets created by the current admin.
-- Admin market removal with full bet refunds when a listing has no outcome.
+- Admin market removal with full bet refunds when a listing has no outcome, plus cleanup for resolved listings.
 - Authenticated bet placement with balance deduction.
 - Portfolio and leaderboard views.
 - Admin market resolution with pooled payouts.
@@ -180,7 +180,7 @@ Market list responses include summary fields:
 }
 ```
 
-`DELETE /api/markets/:id` removes an unresolved listing and refunds every bet on that market. Resolved markets cannot be removed this way because winners may already have been paid.
+`DELETE /api/markets/:id` removes a listing created by the current admin. If the market is unresolved, every bet on that market is refunded before deletion. If the market is already resolved, the listing and its bets are deleted without changing balances because payouts have already been applied.
 
 ### UI Notes
 
@@ -254,7 +254,7 @@ erDiagram
   }
 ```
 
-Balances are debited when users place bets. When a market is resolved, winners split the full market pot proportionally to their share of the winning option pool. When an unresolved listing is removed, all bets on that listing are refunded.
+Balances are debited when users place bets. When a market is resolved, winners split the full market pot proportionally to their share of the winning option pool. When an unresolved listing is removed, all bets on that listing are refunded; when a resolved listing is removed, prior payouts are left unchanged.
 
 ## Development Workflow
 

@@ -66,7 +66,7 @@ function MarketPreviewGrid({
   searchTerm,
   showActions = true,
   statuses = DEFAULT_STATUSES,
-  title = 'Campus market preview',
+  title = 'Campus market',
   /* AI-GENERATED CODE START: accept recommended market IDs for tag rendering */
   recommendedMarketIds = [],
   /* AI-GENERATED CODE END: accept recommended market IDs for tag rendering */
