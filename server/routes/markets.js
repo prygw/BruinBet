@@ -1,7 +1,34 @@
 const express = require('express');
 const { checkAuth } = require('../middleware/auth');
 const { requireAdmin } = require('../middleware/requireAdmin');
-const { getDb } = require('../db');
+const {
+    getMarketSummary,
+    getMarketOptionsWithLiquidity,
+    getMarketCreatedAt,
+    getMarketOptions,
+    getMarketBets,
+    getAllMarketsSummary,
+    getOptionsWithLiquidityForMarkets,
+    getMarketById,
+    getBetCount,
+    getRefundsByUser,
+    getMarketOptionById,
+    getMarketPool,
+    getWinningBets,
+    beginTransaction,
+    commit,
+    rollback,
+    insertMarket,
+    insertMarketOption,
+    updateMarket,
+    updateMarketOptionLabel,
+    deleteMarketOptions,
+    addToUserBalance,
+    deleteBetsByMarket,
+    clearWinningOption,
+    deleteMarket,
+    resolveMarket,
+} = require('../controllers/marketsController');
 
 const router = express.Router();
 
@@ -71,39 +98,14 @@ function allocatePayouts(winningBets, totalPool, winningPool) {
         .map(({ remainder: _remainder, ...payout }) => payout);
 }
 
-async function getMarketWithOptions(db, marketId) {
-    const market = await db.get(`
-        SELECT
-            markets.*,
-            (
-                SELECT COALESCE(SUM(amount), 0)
-                FROM bets
-                WHERE bets.market_id = markets.id
-            ) AS total_liquidity,
-            (
-                SELECT COUNT(*)
-                FROM bets
-                WHERE bets.market_id = markets.id
-            ) AS bet_count
-        FROM markets
-        WHERE markets.id = ?
-    `, [marketId]);
+async function getMarketWithOptions(marketId) {
+    const market = await getMarketSummary(marketId);
 
     if (!market) {
         return null;
     }
 
-    const options = await db.all(`
-        SELECT
-            market_options.*,
-            COALESCE(SUM(bets.amount), 0) AS total_liquidity,
-            COUNT(bets.id) AS bet_count
-        FROM market_options
-        LEFT JOIN bets ON bets.option_id = market_options.id
-        WHERE market_options.market_id = ?
-        GROUP BY market_options.id
-        ORDER BY market_options.id ASC
-    `, [market.id]);
+    const options = await getMarketOptionsWithLiquidity(market.id);
 
     const totalMoneyBet = options.reduce((sum, option) => sum + Number(option.total_liquidity || 0), 0);
     const optionsWithPct = options.map((option) => ({
@@ -132,24 +134,16 @@ function toIsoTimestamp(value) {
     return new Date().toISOString();
 }
 
-async function getProbabilityHistory(db, marketId) {
-    const market = await db.get("SELECT id, created_at FROM markets WHERE id = ?", [marketId]);
+async function getProbabilityHistory(marketId) {
+    const market = await getMarketCreatedAt(marketId);
 
     if (!market) {
         return null;
     }
 
-    const options = await db.all(
-        "SELECT id, label FROM market_options WHERE market_id = ? ORDER BY id ASC",
-        [marketId]
-    );
+    const options = await getMarketOptions(marketId);
 
-    const bets = await db.all(`
-        SELECT option_id, amount, created_at
-        FROM bets
-        WHERE market_id = ?
-        ORDER BY datetime(created_at) ASC, id ASC
-    `, [marketId]);
+    const bets = await getMarketBets(marketId);
 
     const marketCreatedAt = Date.parse(market.created_at);
     const betTimes = bets
@@ -214,30 +208,9 @@ router.get('/', async (req, res) => {
     try {
         const statusFilter = req.query.status || "open";
         const searchTerm = (req.query.search || "").trim().toLowerCase();
-        const db = await getDb();
 
         // need to get and filter markets by status
-        const rows = await db.all(`
-            SELECT
-                markets.*,
-                (
-                    SELECT COUNT(*)
-                    FROM market_options
-                    WHERE market_options.market_id = markets.id
-                ) AS option_count,
-                (
-                    SELECT COALESCE(SUM(amount), 0)
-                    FROM bets
-                    WHERE bets.market_id = markets.id
-                ) AS total_liquidity,
-                (
-                    SELECT COUNT(*)
-                    FROM bets
-                    WHERE bets.market_id = markets.id
-                ) AS bet_count
-            FROM markets
-            ORDER BY created_at DESC
-        `);
+        const rows = await getAllMarketsSummary();
         const now = Date.now();
 
         const markets = rows
@@ -259,22 +232,7 @@ router.get('/', async (req, res) => {
             return res.json({ markets: [] });
         }
 
-        const questonMarks = marketIds.map(() => '?').join(',');
-
-        const optionRows = await db.all(
-            `SELECT
-                market_options.id,
-                market_options.market_id,
-                market_options.label,
-                COALESCE(SUM(bets.amount), 0) AS total_liquidity,
-                COUNT(bets.id) AS bet_count
-            FROM market_options
-            LEFT JOIN bets ON bets.option_id = market_options.id
-            WHERE market_options.market_id IN (${questonMarks})
-            GROUP BY market_options.id
-            ORDER BY market_options.id ASC`,
-            marketIds
-        );
+        const optionRows = await getOptionsWithLiquidityForMarkets(marketIds);
 
         const optionsForEachMarket = optionRows.reduce((acc, row) => {
             acc[row.market_id] = acc[row.market_id] || [];
@@ -307,8 +265,7 @@ router.get('/:id/history', async (req, res) => {
             return res.status(400).json({ error: "A valid market id is required" });
         }
 
-        const db = await getDb();
-        const series = await getProbabilityHistory(db, marketId);
+        const series = await getProbabilityHistory(marketId);
 
         if (!series) {
             return res.status(404).json({ error: "Market not found" });
@@ -325,8 +282,7 @@ router.get('/:id/history', async (req, res) => {
 // GET /api/markets/:id -> checkAuth option for now
 router.get('/:id', async (req, res) => {
     try {
-        const db = await getDb();
-        const market = await getMarketWithOptions(db, req.params.id);
+        const market = await getMarketWithOptions(req.params.id);
 
         if (!market) {
             return res.status(404).json({ error: "Market not found" });
@@ -380,26 +336,16 @@ router.post('/', checkAuth, requireAdmin, async (req, res) => {
             return res.status(400).json({ error: "At least two unique options are required" });
         }
 
-        const db = await getDb();
-        await db.run("BEGIN");
+        await beginTransaction();
         transactionStarted = true;
 
-        const marketResult = await db.run(
-            `
-                INSERT INTO markets (market_name, description, category, closes_at, created_by)
-                VALUES (?, ?, ?, ?, ?)
-            `,
-            [marketName, description, category, new Date(closesAtMs).toISOString(), req.userId]
-        );
+        const marketResult = await insertMarket(marketName, description, category, new Date(closesAtMs).toISOString(), req.userId);
 
         const marketId = marketResult.lastID;
         const createdOptions = [];
 
         for (const label of uniqueOptionLabels) {
-            const optionResult = await db.run(
-                "INSERT INTO market_options (market_id, label) VALUES (?, ?)",
-                [marketId, label]
-            );
+            const optionResult = await insertMarketOption(marketId, label);
 
             createdOptions.push({
                 id: optionResult.lastID,
@@ -408,7 +354,7 @@ router.post('/', checkAuth, requireAdmin, async (req, res) => {
             });
         }
 
-        await db.run("COMMIT");
+        await commit();
         transactionStarted = false;
 
         res.status(201).json({
@@ -425,8 +371,7 @@ router.post('/', checkAuth, requireAdmin, async (req, res) => {
         });
     } catch (err) {
         if (transactionStarted) {
-            const db = await getDb();
-            await db.run("ROLLBACK");
+            await rollback();
         }
 
         console.error(err);
@@ -476,8 +421,7 @@ router.patch('/:id', checkAuth, requireAdmin, async (req, res) => {
             return res.status(400).json({ error: "At least two unique options are required" });
         }
 
-        const db = await getDb();
-        const market = await db.get("SELECT * FROM markets WHERE id = ?", [marketId]);
+        const market = await getMarketById(marketId);
 
         if (!market) {
             return res.status(404).json({ error: "Market not found" });
@@ -491,53 +435,38 @@ router.patch('/:id', checkAuth, requireAdmin, async (req, res) => {
             return res.status(400).json({ error: "Resolved markets cannot be edited" });
         }
 
-        const betCountRow = await db.get("SELECT COUNT(*) AS bet_count FROM bets WHERE market_id = ?", [marketId]);
+        const betCountRow = await getBetCount(marketId);
         const betCount = Number(betCountRow.bet_count || 0);
-        const existingOptions = await db.all(
-            "SELECT id, label FROM market_options WHERE market_id = ? ORDER BY id ASC",
-            [marketId]
-        );
+        const existingOptions = await getMarketOptions(marketId);
 
         if (betCount > 0 && uniqueOptionLabels.length !== existingOptions.length) {
             return res.status(400).json({ error: "Cannot add or remove options after bets have been placed" });
         }
 
-        await db.run("BEGIN");
+        await beginTransaction();
         transactionStarted = true;
 
-        await db.run(
-            `UPDATE markets
-             SET market_name = ?, description = ?, category = ?, closes_at = ?
-             WHERE id = ?`,
-            [marketName, description, category, new Date(closesAtMs).toISOString(), marketId]
-        );
+        await updateMarket(marketName, description, category, new Date(closesAtMs).toISOString(), marketId);
 
         if (betCount > 0) {
             for (let index = 0; index < existingOptions.length; index += 1) {
-                await db.run(
-                    "UPDATE market_options SET label = ? WHERE id = ? AND market_id = ?",
-                    [uniqueOptionLabels[index], existingOptions[index].id, marketId]
-                );
+                await updateMarketOptionLabel(uniqueOptionLabels[index], existingOptions[index].id, marketId);
             }
         } else {
-            await db.run("DELETE FROM market_options WHERE market_id = ?", [marketId]);
+            await deleteMarketOptions(marketId);
             for (const label of uniqueOptionLabels) {
-                await db.run(
-                    "INSERT INTO market_options (market_id, label) VALUES (?, ?)",
-                    [marketId, label]
-                );
+                await insertMarketOption(marketId, label);
             }
         }
 
-        await db.run("COMMIT");
+        await commit();
         transactionStarted = false;
 
-        const updatedMarket = await getMarketWithOptions(db, marketId);
+        const updatedMarket = await getMarketWithOptions(marketId);
         res.json({ market: updatedMarket });
     } catch (err) {
         if (transactionStarted) {
-            const db = await getDb();
-            await db.run("ROLLBACK");
+            await rollback();
         }
 
         console.error(err);
@@ -556,8 +485,7 @@ router.delete('/:id', checkAuth, requireAdmin, async (req, res) => {
             return res.status(400).json({ error: "A valid market id is required" });
         }
 
-        const db = await getDb();
-        const market = await db.get("SELECT * FROM markets WHERE id = ?", [marketId]);
+        const market = await getMarketById(marketId);
 
         if (!market) {
             return res.status(404).json({ error: "Market not found" });
@@ -580,22 +508,19 @@ router.delete('/:id', checkAuth, requireAdmin, async (req, res) => {
                 [marketId]
             );
 
-        await db.run("BEGIN");
+        await beginTransaction();
         transactionStarted = true;
 
         for (const refund of refunds) {
-            await db.run(
-                "UPDATE users SET balance = balance + ? WHERE id = ?",
-                [Number(refund.amount || 0), refund.user_id]
-            );
+            await addToUserBalance(Number(refund.amount || 0), refund.user_id);
         }
 
-        await db.run("DELETE FROM bets WHERE market_id = ?", [marketId]);
-        await db.run("UPDATE markets SET winning_option_id = NULL WHERE id = ?", [marketId]);
-        await db.run("DELETE FROM market_options WHERE market_id = ?", [marketId]);
-        await db.run("DELETE FROM markets WHERE id = ?", [marketId]);
+        await deleteBetsByMarket(marketId);
+        await clearWinningOption(marketId);
+        await deleteMarketOptions(marketId);
+        await deleteMarket(marketId);
 
-        await db.run("COMMIT");
+        await commit();
         transactionStarted = false;
 
         res.json({
@@ -609,8 +534,7 @@ router.delete('/:id', checkAuth, requireAdmin, async (req, res) => {
         });
     } catch (err) {
         if (transactionStarted) {
-            const db = await getDb();
-            await db.run("ROLLBACK");
+            await rollback();
         }
 
         console.error(err);
@@ -635,8 +559,7 @@ router.post('/:id/resolve', checkAuth, requireAdmin, async (req, res) => {
             return res.status(400).json({ error: "winning_option_id is required" });
         }
 
-        const db = await getDb();
-        const market = await db.get("SELECT * FROM markets WHERE id = ?", [marketId]);
+        const market = await getMarketById(marketId);
 
         if (!market) {
             return res.status(404).json({ error: "Market not found" });
@@ -646,54 +569,33 @@ router.post('/:id/resolve', checkAuth, requireAdmin, async (req, res) => {
             return res.status(400).json({ error: "Market has already been resolved" });
         }
 
-        const winningOption = await db.get(
-            "SELECT id, label FROM market_options WHERE id = ? AND market_id = ?",
-            [winningOptionId, marketId]
-        );
+        const winningOption = await getMarketOptionById(winningOptionId, marketId);
 
         if (!winningOption) {
             return res.status(400).json({ error: "Winning option does not belong to this market" });
         }
 
-        const poolRow = await db.get(
-            `SELECT COALESCE(SUM(amount), 0) AS total_pool
-             FROM bets
-             WHERE market_id = ?`,
-            [marketId]
-        );
+        const poolRow = await getMarketPool(marketId);
         const totalPool = Number(poolRow.total_pool || 0);
 
-        const winningBets = await db.all(
-            `SELECT user_id, SUM(amount) AS amount
-             FROM bets
-             WHERE market_id = ? AND option_id = ?
-             GROUP BY user_id
-             ORDER BY user_id ASC`,
-            [marketId, winningOptionId]
-        );
+        const winningBets = await getWinningBets(marketId, winningOptionId);
 
         const winningPool = winningBets.reduce((sum, bet) => sum + Number(bet.amount || 0), 0);
         const payouts = allocatePayouts(winningBets, totalPool, winningPool);
 
-        await db.run("BEGIN");
+        await beginTransaction();
         transactionStarted = true;
 
-        await db.run(
-            "UPDATE markets SET status = 'closed', winning_option_id = ? WHERE id = ?",
-            [winningOptionId, marketId]
-        );
+        await resolveMarket(winningOptionId, marketId);
 
         for (const payout of payouts) {
-            await db.run(
-                "UPDATE users SET balance = balance + ? WHERE id = ?",
-                [payout.payout, payout.user_id]
-            );
+            await addToUserBalance(payout.payout, payout.user_id);
         }
 
-        await db.run("COMMIT");
+        await commit();
         transactionStarted = false;
 
-        const resolvedMarket = await getMarketWithOptions(db, marketId);
+        const resolvedMarket = await getMarketWithOptions(marketId);
 
         res.json({
             market: {
@@ -709,8 +611,7 @@ router.post('/:id/resolve', checkAuth, requireAdmin, async (req, res) => {
         });
     } catch (err) {
         if (transactionStarted) {
-            const db = await getDb();
-            await db.run("ROLLBACK");
+            await rollback();
         }
 
         console.error(err);

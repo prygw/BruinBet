@@ -6,7 +6,7 @@ function DashboardPage({ session }) {
       <div className="dashboard-panel">
         <p className="eyebrow">Signed in</p>
         <h1 id="dashboard-title">
-          Welcome,<br />
+          Welcome, <br />
           <span>{session.displayName}</span>
         </h1>
         <p>Your UCLA account is active.</p>
