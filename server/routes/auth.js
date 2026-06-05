@@ -1,6 +1,6 @@
 const INITIAL_BALANCE = 10000;
 
-const { createUser, getUserByEmail, getSafeUserByEmail, getSafeUserById } = require("../controllers/authController");
+const { createUser, getUserByEmail, getSafeUserByEmail, getSafeUserById, deleteUserAccount } = require("../controllers/authController");
 const express = require("express");
 const bcrypt = require("bcrypt");
 const { genToken, checkAuth } = require("../middleware/auth");
@@ -102,6 +102,25 @@ router.get("/me", checkAuth, async (req, res) => {
 		res.json({ user });
 	} catch (err) {
 		res.status(500).json({ error: "Something went wrong." });
+	}
+});
+
+router.delete("/me", checkAuth, async (req, res) => {
+	try {
+		const result = await deleteUserAccount(req.userId);
+
+		if (!result) {
+			return res.status(404).json({ error: "User not found" });
+		}
+
+		if (result.blocked) {
+			return res.status(403).json({ error: "Admin accounts cannot be deleted" });
+		}
+
+		res.json(result);
+	} catch (err) {
+		console.error("DELETE ACCOUNT ROUTE ERROR:", err);
+		res.status(500).json({ error: "Something went wrong with deleting your account. Please try again." });
 	}
 });
 

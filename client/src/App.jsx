@@ -294,7 +294,7 @@ function App() {
         )}
 
         {activeView === 'dashboard' && session && (
-          <DashboardPage session={session} />
+          <DashboardPage session={session} onAccountDeleted={handleLogout} />
         )}
 
         {activeView === 'leaderboard' && <LeaderboardPage />}

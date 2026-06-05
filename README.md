@@ -131,6 +131,7 @@ The backend runs on `http://localhost:5001` by default. Vite will print the fron
 | `GET`    | `/api/health`                          | Health check                                                   |
 | `POST`   | `/api/auth/register`                   | Register with a UCLA email                                     |
 | `POST`   | `/api/auth/login`                      | Log in and receive a JWT                                       |
+| `DELETE` | `/api/auth/me`                         | Delete the authenticated non-admin account                     |
 | `GET`    | `/api/markets?status=open&search=ucla` | List markets with optional status and search filters           |
 | `GET`    | `/api/markets/:id`                     | Get one market with options and summary stats                  |
 | `POST`   | `/api/markets`                         | Admin-protected market creation                                |
