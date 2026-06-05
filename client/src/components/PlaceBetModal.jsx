@@ -190,6 +190,9 @@ function PlaceBetModal({ market, balance, initialSelectedOptionId = null, onClos
         <div className="modal-header">
           <p className="eyebrow">Place a bet</p>
           <h3>{displayMarket.market_name}</h3>
+          {displayMarket.description && (
+            <p className="modal-market-description">{displayMarket.description}</p>
+          )}
         </div>
 
         <div className="bet-modal-grid">
