@@ -545,7 +545,8 @@ router.patch('/:id', checkAuth, requireAdmin, async (req, res) => {
     }
 });
 
-// admin-only, remove an unresolved market and refund all placed bets
+// admin-only, remove a market created by the current admin.
+// Unresolved markets refund stakes; resolved markets have already paid out, so balances are left unchanged.
 router.delete('/:id', checkAuth, requireAdmin, async (req, res) => {
     let transactionStarted = false;
 
@@ -566,18 +567,18 @@ router.delete('/:id', checkAuth, requireAdmin, async (req, res) => {
             return res.status(403).json({ error: "You can only remove markets you created" });
         }
 
-        if (market.status === "closed" || market.winning_option_id) {
-            return res.status(400).json({ error: "Resolved markets cannot be removed as no-outcome markets" });
-        }
+        const isResolved = market.status === "closed" || Boolean(market.winning_option_id);
 
-        const refunds = await db.all(
-            `SELECT user_id, SUM(amount) AS amount
-             FROM bets
-             WHERE market_id = ?
-             GROUP BY user_id
-             ORDER BY user_id ASC`,
-            [marketId]
-        );
+        const refunds = isResolved
+            ? []
+            : await db.all(
+                `SELECT user_id, SUM(amount) AS amount
+                 FROM bets
+                 WHERE market_id = ?
+                 GROUP BY user_id
+                 ORDER BY user_id ASC`,
+                [marketId]
+            );
 
         await db.run("BEGIN");
         transactionStarted = true;
@@ -599,6 +600,7 @@ router.delete('/:id', checkAuth, requireAdmin, async (req, res) => {
 
         res.json({
             removed_market_id: marketId,
+            was_resolved: isResolved,
             refunds: refunds.map((refund) => ({
                 user_id: refund.user_id,
                 amount: Number(refund.amount || 0),

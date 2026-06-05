@@ -202,7 +202,12 @@ function AdminManageMarketsPage({ session }) {
   }
 
   async function removeMarket(market) {
-    const confirmed = window.confirm('Remove this listing and refund all bets? This cannot be undone.')
+    const resolved = market.status === 'closed' || Boolean(market.winning_option_id)
+    const confirmed = window.confirm(
+      resolved
+        ? 'Remove this resolved listing? Existing payouts will not be changed. This cannot be undone.'
+        : 'Remove this listing and refund all bets? This cannot be undone.',
+    )
     if (!confirmed) {
       return
     }
@@ -235,7 +240,11 @@ function AdminManageMarketsPage({ session }) {
         delete nextWinningOptions[market.id]
         return nextWinningOptions
       })
-      setMessage(`Listing removed. Refunded $${Number(data.refund_total || 0).toLocaleString()} to ${data.refunds.length} user(s).`)
+      if (data.was_resolved) {
+        setMessage('Resolved listing removed. Existing payouts were left unchanged.')
+      } else {
+        setMessage(`Listing removed. Refunded $${Number(data.refund_total || 0).toLocaleString()} to ${data.refunds.length} user(s).`)
+      }
     } catch (err) {
       setError(err.message || 'Unable to remove market')
     } finally {
@@ -382,7 +391,7 @@ function AdminManageMarketsPage({ session }) {
               <button
                 className="logout-button"
                 type="button"
-                disabled={locked || savingId === market.id}
+                disabled={savingId === market.id}
                 onClick={() => removeMarket(market)}
               >
                 Remove listing
