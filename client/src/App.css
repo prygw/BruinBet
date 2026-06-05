@@ -667,15 +667,10 @@ dt {
 }
 
 .market-description {
-  display: -webkit-box;
-  min-height: 42px;
   margin: 0;
-  overflow: hidden;
   color: #cbd5e1;
   font-size: 14px;
   line-height: 1.5;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
 }
 
 .status-module {
