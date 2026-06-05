@@ -58,6 +58,23 @@ JWT_SECRET=replace_this_with_a_local_secret
 PORT=5001
 ```
 
+## Running Tests
+- From the repository root, run the Playwright end-to-end tests:
+
+```bash
+npx playwright test
+```
+
+- To run a single test file (example):
+
+```bash
+npx playwright test tests/end_to_end_auth.spec.js
+```
+
+- Notes:
+  - Ensure the server is running (e.g., `cd server && npm run dev`) and that required environment variables are set. See `admin_login.env` for test credentials used by the Playwright specs.
+  - Playwright configuration is in `playwright.config.js` at the repo root.
+
 You can copy the required keys from `server/.env.example`.
 
 Optional client environment variable:
