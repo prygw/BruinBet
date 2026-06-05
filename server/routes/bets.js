@@ -1,6 +1,16 @@
 const express = require('express');
 const { checkAuth } = require('../middleware/auth');
-const { getDb } = require('../db');
+const {
+    getMarketById,
+    getMarketOption,
+    getUserBalance,
+    beginTransaction,
+    deductBalance,
+    rollback,
+    insertBet,
+    commit,
+    getPositionCount,
+} = require('../controllers/betsController');
 
 const router = express.Router();
 
@@ -30,9 +40,7 @@ router.post('/', checkAuth, async (req, res) => {
             return res.status(400).json({ error: 'Bet amount must be a positive whole number' });
         }
 
-        const db = await getDb();
-
-        const market = await db.get('SELECT * FROM markets WHERE id = ?', [marketId]);
+        const market = await getMarketById(marketId);
         if (!market) {
             return res.status(404).json({ error: 'Market not found' });
         }
@@ -41,15 +49,12 @@ router.post('/', checkAuth, async (req, res) => {
             return res.status(400).json({ error: 'Market is not open for betting' });
         }
 
-        const option = await db.get(
-            'SELECT id, label FROM market_options WHERE id = ? AND market_id = ?',
-            [optionId, marketId]
-        );
+        const option = await getMarketOption(optionId, marketId);
         if (!option) {
             return res.status(400).json({ error: 'Option does not belong to this market' });
         }
 
-        const user = await db.get('SELECT balance FROM users WHERE id = ?', [userId]);
+        const user = await getUserBalance(userId);
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
@@ -58,32 +63,23 @@ router.post('/', checkAuth, async (req, res) => {
             return res.status(400).json({ error: 'Insufficient balance' });
         }
 
-        await db.run('BEGIN');
+        await beginTransaction();
         transactionStarted = true;
 
-        const balanceUpdate = await db.run(
-            'UPDATE users SET balance = balance - ? WHERE id = ? AND balance >= ?',
-            [amount, userId, amount]
-        );
+        const balanceUpdate = await deductBalance(userId, amount);
 
         if (balanceUpdate.changes !== 1) {
-            await db.run('ROLLBACK');
+            await rollback();
             transactionStarted = false;
             return res.status(400).json({ error: 'Insufficient balance' });
         }
 
-        const result = await db.run(
-            'INSERT INTO bets (user_id, market_id, option_id, amount) VALUES (?, ?, ?, ?)',
-            [userId, marketId, optionId, amount]
-        );
-        await db.run('COMMIT');
+        const result = await insertBet(userId, marketId, optionId, amount);
+        await commit();
         transactionStarted = false;
 
-        const { balance } = await db.get('SELECT balance FROM users WHERE id = ?', [userId]);
-        const { position_count: positionCount } = await db.get(
-            'SELECT COUNT(*) AS position_count FROM bets WHERE user_id = ? AND market_id = ?',
-            [userId, marketId]
-        );
+        const { balance } = await getUserBalance(userId);
+        const { position_count: positionCount } = await getPositionCount(userId, marketId);
 
         res.status(201).json({
             bet: { id: result.lastID, user_id: userId, market_id: marketId, option_id: optionId, amount },
@@ -92,8 +88,7 @@ router.post('/', checkAuth, async (req, res) => {
         });
     } catch (err) {
         if (transactionStarted) {
-            const db = await getDb();
-            await db.run('ROLLBACK');
+            await rollback();
         }
 
         console.error(err);
