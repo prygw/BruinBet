@@ -5,7 +5,7 @@ UCLA's prediction market for campus events, sports, academics, and student life.
 ## Features
 
 - Public market feed backed by SQLite data.
-- Market search by name, description, or category.
+- Market search by ticket title.
 - UCLA email registration and login.
 - JWT-protected backend routes.
 - Practice balance for each user.
@@ -179,7 +179,7 @@ Authorization: Bearer jwt-token
 `GET /api/markets` accepts:
 
 - `status`: defaults to `open`; supported computed values are `open`, `expired`, and `closed`.
-- `search`: optional case-insensitive search over market name, description, and category.
+- `search`: optional case-insensitive search over ticket title.
 
 Market list responses include summary fields:
 
