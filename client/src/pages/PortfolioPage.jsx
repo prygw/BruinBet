@@ -117,10 +117,6 @@ function PortfolioPage({ session }) {
       </div>
 
       {error && <p className="form-error">{error}</p>}
-
-      {!error && positions.length === 0 && (
-        <p className="empty-results">You have not placed any bets yet.</p>
-      )}
     </section>
   )
 }
