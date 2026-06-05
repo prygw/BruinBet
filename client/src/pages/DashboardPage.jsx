@@ -14,10 +14,12 @@ function DashboardPage({ session }) {
 
       <div className="account-summary" aria-label="Account summary">
         <SummaryItem label="Email" value={session.email} />
-        <SummaryItem
-          label="Balance"
-          value={`$${session.balance.toLocaleString()}`}
-        />
+        {!session.is_admin && (
+          <SummaryItem
+            label="Balance"
+            value={`$${session.balance.toLocaleString()}`}
+          />
+        )}
         <SummaryItem label="Access" value={accessLabel} />
       </div>
     </section>
