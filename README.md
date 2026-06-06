@@ -231,47 +231,26 @@ The React app calls Express API routes with `fetch`. Protected actions send a JW
 
 ### Database Entity Relationship
 
-```mermaid
-erDiagram
-  users ||--o{ markets : creates
-  users ||--o{ bets : places
-  markets ||--o{ market_options : has
-  markets ||--o{ bets : receives
-  market_options ||--o{ bets : selected_by
-  market_options ||--o| markets : wins
+#### Diagram 1: Login Sequence
+The sequence diagram below maps the primary authentication path. It is intentionally scoped to highlight the overarching client-server interaction without getting bogged down in low-level execution details.
 
-  users {
-    integer id PK
-    text email
-    text username
-    integer balance
-    integer is_admin
-  }
-  markets {
-    integer id PK
-    text market_name
-    text description
-    text category
-    text status
-    text closes_at
-    integer winning_option_id FK
-    integer created_by FK
-  }
-  market_options {
-    integer id PK
-    integer market_id FK
-    text label
-  }
-  bets {
-    integer id PK
-    integer user_id FK
-    integer market_id FK
-    integer option_id FK
-    integer amount
-  }
-```
+![Auth sequence diagram](authSequenceDiagram.png)
 
-Balances are debited when users place bets. When a market is resolved, winners split the full market pot proportionally to their share of the winning option pool. When an unresolved listing is removed, all bets on that listing are refunded; when a resolved listing is removed, prior payouts are left unchanged.
+Design Notes:
+- Primary Happy Path: The diagram focuses strictly on the main login workflow. It omits aux flows like registration and logout to keep the core mechanisms for auth clear
+- Component-Level Focus: The lifelines represent significant boundaries within the system (e.g., app, authRouter, authController, sqlite). Smaller utilities like bcrypt for password verification and jwt for token signing are treated as internal logic to keep the focus on the actual data handoffs.
+- Essential Branching: In the same vein as only including significant boundaries,only the critical resolution logic is shown (the alt block for a successful authentication vs. a 401 unauthorized response).
+
+#### Diagram 2: Betting Sequence
+The sequence diagram below maps the primary betting path. Like the authentication sequence, it's intentionally scoped to include only the most important / high-level features needed to understand the sequence.
+
+![Betting sequence diagram](bettingSequenceDiagram.png)
+
+Design Notes:
+- Primary Happy Path: The diagram focuses strictly on the main place-bet workflow. It omits aux flows like modal opening, market data refresh, and post-bet portfolio updates to keep the core mechanism for placing a bet clear.
+- Component-Level Focus: The lifelines represent significant boundaries within the system (e.g., modal, betsRouter, betsController, sqlite). Smaller utilities like the placeBetHook for client-side coordination, session for token retrieval, and authMiddleware/jwt for token verification are treated as internal logic to keep the focus on the actual data handoffs.
+- Essential Branching: In the same vein as only including significant boundaries, only the critical resolution logic is shown (the alt block for a successful bet vs. a collapsed 4xx rejection covering all server-side failure modes including auth, invalid market/option, closed market, insufficient funds).
+- Transactional Abstraction: Recording the bet is show as a single conceptual bet recording sequence (BEGIN / UPDATE / INSERT / COMMIT).
 
 ## Development Workflow
 
