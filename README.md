@@ -219,7 +219,7 @@ Use Case Diagram:
 #### Diagram 1: Login Sequence
 The sequence diagram below maps the primary authentication path. It is intentionally scoped to highlight the overarching client-server interaction without getting bogged down in low-level execution details.
 
-![Auth sequence diagram](authSequenceDiagram.png)
+![Auth sequence diagram](client/authSequenceDiagram.png)
 
 Design Notes:
 - Primary Happy Path: The diagram focuses strictly on the main login workflow. It omits aux flows like registration and logout to keep the core mechanisms for auth clear
@@ -229,7 +229,7 @@ Design Notes:
 #### Diagram 2: Betting Sequence
 The sequence diagram below maps the primary betting path. Like the authentication sequence, it's intentionally scoped to include only the most important / high-level features needed to understand the sequence.
 
-![Betting sequence diagram](bettingSequenceDiagram.png)
+![Betting sequence diagram](client/bettingSequenceDiagram.png)
 
 Design Notes:
 - Primary Happy Path: The diagram focuses strictly on the main place-bet workflow. It omits aux flows like modal opening, market data refresh, and post-bet portfolio updates to keep the core mechanism for placing a bet clear.
