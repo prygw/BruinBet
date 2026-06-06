@@ -112,6 +112,7 @@ test.describe('Authentication and access control pipeline', () => {
     // should see admin welcome and button, but no place bet buttons
     await expect(page.getByText(/welcome, admin/i)).toBeVisible()
     await expect(page.getByRole('button', { name: /admin/i })).toBeVisible()
+    await expect(page.getByRole('button', { name: /portfolio/i })).toHaveCount(0)
     await expect(page.getByRole('button', { name: /place bet/i })).toHaveCount(0)
   })
 

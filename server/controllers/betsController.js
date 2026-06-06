@@ -15,7 +15,7 @@ async function getMarketOption(optionId, marketId) {
 
 async function getUserBalance(userId) {
     const db = await getDb();
-    return db.get('SELECT balance FROM users WHERE id = ?', [userId]);
+    return db.get('SELECT balance, is_admin FROM users WHERE id = ?', [userId]);
 }
 
 async function beginTransaction() {

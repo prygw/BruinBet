@@ -221,9 +221,7 @@ router.get('/', async (req, res) => {
                     return true;
                 }
 
-                return [row.market_name, row.description, row.category]
-                    .filter(Boolean)
-                    .some(value => value.toLowerCase().includes(searchTerm));
+                return (row.market_name || "").toLowerCase().includes(searchTerm);
             });
 
         // trying to get options for each market to display those too (need to do this bc market options live in different table than markets)

@@ -5,7 +5,7 @@ UCLA's prediction market for campus events, sports, academics, and student life.
 ## Features
 
 - Public market feed backed by SQLite data.
-- Market search by name, description, or category.
+- Market search by ticket title.
 - UCLA email registration and login.
 - JWT-protected backend routes.
 - Practice balance for each user.
@@ -13,8 +13,8 @@ UCLA's prediction market for campus events, sports, academics, and student life.
 - Admin-protected market creation.
 - Admin market editing for markets created by the current admin.
 - Admin market removal with full bet refunds when a listing has no outcome, plus cleanup for resolved listings.
-- Authenticated bet placement with balance deduction.
-- Portfolio and leaderboard views.
+- Non-admin bet placement with balance deduction.
+- Portfolio view for bettors and leaderboard view for ranked betting activity.
 - Admin market resolution with pooled payouts.
 - Past market section for expired and resolved listings.
 - Prediction-market-style cards with live probability bars, outcome rows, pool/bet stats, and current leading side.
@@ -98,10 +98,10 @@ Seed sample bets:
 
 ```bash
 cd server
-npm run seed:bets
+npm run seed:bets -- --email=<non-admin-user>@ucla.edu
 ```
 
-By default this seeds bets under `admin@ucla.edu`. You can specify an email (replace `<your-email>`):
+Use a non-admin account for seeded bets. Admin accounts can create, edit, remove, and resolve markets, but they cannot place bets or use the bettor portfolio. If needed, register a regular user through the app first, then pass that user's email:
 
 ```bash
 cd server
@@ -131,13 +131,14 @@ The backend runs on `http://localhost:5001` by default. Vite will print the fron
 | `GET`    | `/api/health`                          | Health check                                                   |
 | `POST`   | `/api/auth/register`                   | Register with a UCLA email                                     |
 | `POST`   | `/api/auth/login`                      | Log in and receive a JWT                                       |
+| `DELETE` | `/api/auth/me`                         | Delete the authenticated non-admin account                     |
 | `GET`    | `/api/markets?status=open&search=ucla` | List markets with optional status and search filters           |
 | `GET`    | `/api/markets/:id`                     | Get one market with options and summary stats                  |
 | `POST`   | `/api/markets`                         | Admin-protected market creation                                |
 | `PATCH`  | `/api/markets/:id`                     | Admin-protected edits for markets created by the current admin |
 | `DELETE` | `/api/markets/:id`                     | Admin-protected market removal with bet refunds                |
 | `POST`   | `/api/markets/:id/resolve`             | Admin-protected market resolution and payout                   |
-| `POST`   | `/api/bets`                            | Place an authenticated bet                                     |
+| `POST`   | `/api/bets`                            | Place an authenticated non-admin bet                           |
 | `GET`    | `/api/portfolio`                       | Get the authenticated user's positions                         |
 | `GET`    | `/api/leaderboard`                     | Get ranked users by balance and betting activity               |
 
@@ -179,7 +180,7 @@ Authorization: Bearer jwt-token
 `GET /api/markets` accepts:
 
 - `status`: defaults to `open`; supported computed values are `open`, `expired`, and `closed`.
-- `search`: optional case-insensitive search over market name, description, and category.
+- `search`: optional case-insensitive search over ticket title.
 
 Market list responses include summary fields:
 
@@ -207,29 +208,13 @@ The bet modal estimates payout before submission using the same pooled payout id
 
 Admin-only navigation is grouped under an `Admin` hover menu to keep the top bar usable on narrower screens.
 
+Admin accounts are for market operations only. The UI hides bettor-only actions such as bet placement and Portfolio for admins.
+
 ## Architecture Diagrams
 
-### Client-Server Request Flow
+Use Case Diagram:
 
-```mermaid
-flowchart LR
-  Browser[React client] -->|fetch /api/auth/*| Auth[Auth routes]
-  Browser -->|fetch /api/markets*| Markets[Market routes]
-  Browser -->|fetch /api/bets| Bets[Bet route]
-  Browser -->|fetch /api/portfolio| Portfolio[Portfolio route]
-  Browser -->|fetch /api/leaderboard| Leaderboard[Leaderboard route]
-  Auth --> DB[(SQLite)]
-  Markets --> DB
-  Bets --> DB
-  Portfolio --> DB
-  Leaderboard --> DB
-  Markets -->|admin edit / remove / resolve| Admin[checkAuth + requireAdmin]
-  Bets -->|protected action| Protected[checkAuth]
-```
-
-The React app calls Express API routes with `fetch`. Protected actions send a JWT in the `Authorization` header; admin-only market creation, edits, removal, and resolution also pass through `requireAdmin`.
-
-### Database Entity Relationship
+<img width="2482" height="3207" alt="BruinBet Use Case Diagram" src="https://github.com/user-attachments/assets/95073b09-d062-4db2-ae29-d534f4dbbfe1" />
 
 #### Diagram 1: Login Sequence
 The sequence diagram below maps the primary authentication path. It is intentionally scoped to highlight the overarching client-server interaction without getting bogged down in low-level execution details.
@@ -258,7 +243,7 @@ Useful commands:
 
 ```bash
 cd server && npm run seed
-cd server && npm run seed:bets
+cd server && npm run seed:bets -- --email=<non-admin-user>@ucla.edu
 cd server && npm run dev
 cd client && npm run dev
 cd client && npm run lint
@@ -269,7 +254,7 @@ Before opening a pull request, run the client lint/build checks and confirm the 
 
 ## Testing
 
-The client currently has linting and production build checks:
+The client has linting and production build checks:
 
 ```bash
 cd client
@@ -277,7 +262,7 @@ npm run lint
 npm run build
 ```
 
-Automated end-to-end tests are planned with Playwright before the final presentation.
+Playwright end-to-end tests live in `tests/` and can be run from the repository root with `npx playwright test`.
 
 ## Project Notes
 
